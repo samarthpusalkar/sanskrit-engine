@@ -1,0 +1,16 @@
+[project]
+name = "sanskrit-engine"
+version = "0.1.0"
+description = "Deterministic Paninian-style Sanskrit generation engine prototype"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+sanskrit-engine = "sanskrit_engine.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

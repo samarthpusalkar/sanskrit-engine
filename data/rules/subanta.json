@@ -1,0 +1,113 @@
+{
+  "rules": [
+    {
+      "id": "4.1.2.sample.masc.nom.sg",
+      "name": "a-stem masculine nominative singular: a + su -> aḥ",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "gender": "masculine", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "nominative", "number": "singular"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "aḥ",
+        "right_old": "su",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "4.1.2.sample.masc.acc.sg",
+      "name": "a-stem masculine accusative singular: a + am -> am",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "gender": "masculine", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "accusative", "number": "singular"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "am",
+        "right_old": "am",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "4.1.2.sample.masc.nom.pl",
+      "name": "a-stem masculine nominative plural: a + jas -> āḥ",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "gender": "masculine", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "nominative", "number": "plural"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "āḥ",
+        "right_old": "jas",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "7.1.20.sample.neut.nom.sg",
+      "name": "a-stem neuter nominative singular: a + su -> am",
+      "type": "vidhi",
+      "priority": 110,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "gender": "neuter", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "nominative", "number": "singular"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "am",
+        "right_old": "su",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "7.1.20.sample.neut.acc.sg",
+      "name": "a-stem neuter accusative singular: a + am -> am",
+      "type": "vidhi",
+      "priority": 110,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "gender": "neuter", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "accusative", "number": "singular"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "am",
+        "right_old": "am",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "7.1.20.sample.neut.nom.pl",
+      "name": "a-stem neuter nominative plural: a + jas -> āni",
+      "type": "vidhi",
+      "priority": 110,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "gender": "neuter", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "nominative", "number": "plural"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "āni",
+        "right_old": "jas",
+        "right_new": "",
+        "remove_right": true
+      }
+    }
+  ]
+}
+

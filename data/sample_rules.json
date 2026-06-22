@@ -1,0 +1,32 @@
+{
+  "rules": [
+    {
+      "id": "6.1.sample.dirgha",
+      "name": "sample vowel coalescence a/ā + a/ā -> ā",
+      "type": "vidhi",
+      "priority": 10,
+      "conditions": {
+        "target": {"text_in": ["a", "ā"]},
+        "right": {"text_in": ["a", "ā"]}
+      },
+      "operation": {
+        "type": "merge_with_right",
+        "text": "ā",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "1.3.sample.it-delete",
+      "name": "sample anubandha deletion",
+      "type": "vidhi",
+      "priority": 5,
+      "conditions": {
+        "target": {"tag": "it"}
+      },
+      "operation": {
+        "type": "delete"
+      }
+    }
+  ]
+}
+

@@ -1,0 +1,77 @@
+{
+  "rules": [
+    {
+      "id": "6.1.101.sample",
+      "name": "akaha savarne dirghah: final a + initial a -> ā",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {
+        "target": {"text_suffix": "a"},
+        "right": {"text_prefix": "a"}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "ā",
+        "right_old": "a",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "6.1.109.sample",
+      "name": "visarga before initial a: aḥ + a -> o '",
+      "type": "vidhi",
+      "priority": 110,
+      "conditions": {
+        "target": {"text_suffix": "aḥ"},
+        "right": {"text_prefix": "a"}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "aḥ",
+        "new": "o",
+        "right_old": "a",
+        "right_new": "'",
+        "remove_right": false
+      }
+    },
+    {
+      "id": "8.3.15.sample",
+      "name": "visarga before soft consonant: aḥ + voiced -> o",
+      "type": "vidhi",
+      "priority": 90,
+      "conditions": {
+        "target": {"text_suffix": "aḥ"},
+        "right": {"text_prefix": "g"}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "aḥ",
+        "new": "o",
+        "right_old": "g",
+        "right_new": "g",
+        "remove_right": false
+      }
+    },
+    {
+      "id": "8.3.15.sample.bh",
+      "name": "visarga before bh: aḥ + bh -> o bh",
+      "type": "vidhi",
+      "priority": 90,
+      "conditions": {
+        "target": {"text_suffix": "aḥ"},
+        "right": {"text_prefix": "bh"}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "aḥ",
+        "new": "o",
+        "right_old": "bh",
+        "right_new": "bh",
+        "remove_right": false
+      }
+    }
+  ]
+}
+

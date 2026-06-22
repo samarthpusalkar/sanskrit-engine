@@ -1,0 +1,77 @@
+{
+  "rules": [
+    {
+      "id": "3.4.78.sample.tip",
+      "name": "present third singular parasmaipada: stem + tip -> stemti",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {
+        "target": {"tag": "verb_stem"},
+        "right": {"tag": "tin", "feature_equals": {"person": "third", "number": "singular", "tense": "present"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "",
+        "new": "",
+        "right_old": "tip",
+        "right_new": "ti",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "3.4.78.sample.jhi",
+      "name": "present third plural parasmaipada: stem + jhi -> stemnti",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {
+        "target": {"tag": "verb_stem"},
+        "right": {"tag": "tin", "feature_equals": {"person": "third", "number": "plural", "tense": "present"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "",
+        "new": "",
+        "right_old": "jhi",
+        "right_new": "nti",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "3.4.78.sample.mip",
+      "name": "present first singular parasmaipada: stem + mip -> stemmi",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {
+        "target": {"tag": "verb_stem"},
+        "right": {"tag": "tin", "feature_equals": {"person": "first", "number": "singular", "tense": "present"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "",
+        "new": "",
+        "right_old": "mip",
+        "right_new": "mi",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "3.4.78.sample.sip",
+      "name": "present second singular parasmaipada: stem + sip -> stemsi",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {
+        "target": {"tag": "verb_stem"},
+        "right": {"tag": "tin", "feature_equals": {"person": "second", "number": "singular", "tense": "present"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "",
+        "new": "",
+        "right_old": "sip",
+        "right_new": "si",
+        "remove_right": true
+      }
+    }
+  ]
+}
+
