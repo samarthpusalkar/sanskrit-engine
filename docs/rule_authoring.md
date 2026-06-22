@@ -29,6 +29,7 @@ Executable rules are JSON objects consumed by `sanskrit_engine.loader.load_rules
 - `text_in`: one of many token texts.
 - `text_suffix`: token text must end with suffix.
 - `text_prefix`: token text must start with prefix.
+- `text_contains`: token text must contain substring.
 - `tag`: token must contain tag.
 - `has_tags`: token must contain all tags.
 - `feature_equals`: token feature map must match.
@@ -72,6 +73,25 @@ Current resolver rank:
 
 Use `priority` for known meta-rule ordering until deeper paribhasha engine lands.
 
+## Inheritance / Anuvritti
+
+Rule configs can use `inherits` to copy context from earlier rules:
+
+```json
+{
+  "id": "child",
+  "inherits": "parent",
+  "conditions": {"right": {"tag": "sup"}},
+  "operation": {"type": "delete"}
+}
+```
+
+Hydrate before runtime:
+
+```bash
+python -m sanskrit_engine.cli hydrate-rules raw.json hydrated.json
+```
+
 ## Encoding Workflow
 
 1. Export stubs from source sutras.
@@ -93,4 +113,10 @@ Use morphology packs during generation:
 python -m sanskrit_engine.cli generate-jsonl data/synthetic.jsonl \
   --morphology-rules data/rules/subanta.json,data/rules/tinanta.json \
   --sandhi
+```
+
+Validate after editing:
+
+```bash
+python -m sanskrit_engine.cli validate data/fixtures/derivations.json
 ```

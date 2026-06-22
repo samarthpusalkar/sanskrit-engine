@@ -55,6 +55,114 @@
       }
     },
     {
+      "id": "4.1.2.sample.masc.acc.pl",
+      "name": "a-stem masculine accusative plural: a + śas -> ān",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "gender": "masculine", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "accusative", "number": "plural"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "ān",
+        "right_old": "śas",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "4.1.2.sample.a.inst.sg.r",
+      "name": "a-stem instrumental singular after r-containing stem: a + ṭā -> eṇa",
+      "type": "vidhi",
+      "priority": 105,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "stem_final": "a"}, "text_contains": "r"},
+        "right": {"tag": "sup", "feature_equals": {"case": "instrumental", "number": "singular"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "eṇa",
+        "right_old": "ṭā",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "4.1.2.sample.a.inst.sg",
+      "name": "a-stem instrumental singular: a + ṭā -> ena",
+      "type": "vidhi",
+      "priority": 95,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "instrumental", "number": "singular"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "ena",
+        "right_old": "ṭā",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "4.1.2.sample.a.dat.sg",
+      "name": "a-stem dative singular: a + ṅe -> āya",
+      "type": "vidhi",
+      "priority": 95,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "dative", "number": "singular"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "āya",
+        "right_old": "ṅe",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "4.1.2.sample.a.gen.sg",
+      "name": "a-stem genitive singular: a + ṅas -> asya",
+      "type": "vidhi",
+      "priority": 95,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "genitive", "number": "singular"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "asya",
+        "right_old": "ṅas",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "4.1.2.sample.a.loc.sg",
+      "name": "a-stem locative singular: a + ṅi -> e",
+      "type": "vidhi",
+      "priority": 95,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "locative", "number": "singular"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "e",
+        "right_old": "ṅi",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
       "id": "7.1.20.sample.neut.nom.sg",
       "name": "a-stem neuter nominative singular: a + su -> am",
       "type": "vidhi",
@@ -107,7 +215,24 @@
         "right_new": "",
         "remove_right": true
       }
+    },
+    {
+      "id": "7.1.20.sample.neut.acc.pl",
+      "name": "a-stem neuter accusative plural: a + śas -> āni",
+      "type": "vidhi",
+      "priority": 110,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "gender": "neuter", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "accusative", "number": "plural"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "āni",
+        "right_old": "śas",
+        "right_new": "",
+        "remove_right": true
+      }
     }
   ]
 }
-

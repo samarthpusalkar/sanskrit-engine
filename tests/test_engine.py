@@ -16,6 +16,8 @@ from sanskrit_engine.dataset import generate_jsonl
 from sanskrit_engine.enforcer import RuleEnforcer
 from sanskrit_engine.lexicon import NounEntry, VerbEntry
 from sanskrit_engine.morphology import RuleBasedMorphology
+from sanskrit_engine.preprocessor import hydrate_rule_config
+from sanskrit_engine.validator import validate_fixture
 from sanskrit_engine.pratyahara import PratyaharaResolver
 
 
@@ -238,3 +240,112 @@ def test_cli_generates_jsonl_with_morphology_and_sandhi(tmp_path) -> None:
     assert len(rows) == 2
     assert rows[0]["forms"][0]["rule_ids"]
     assert rows[0]["enforcement"]["ok"]
+
+
+def test_validation_fixture_passes() -> None:
+    report = validate_fixture("data/fixtures/derivations.json")
+
+    assert report.ok
+    assert report.total >= 10
+
+
+def test_cli_coverage_reports_source_matches(tmp_path) -> None:
+    stubs = tmp_path / "stubs.json"
+    stubs.write_text(
+        json.dumps(
+            {
+                "rules": [
+                    {"id": "1.1.1", "operation": {"type": "noop"}},
+                    {"id": "6.1.101", "operation": {"type": "noop"}},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    rules = tmp_path / "rules.json"
+    rules.write_text(
+        json.dumps(
+            {
+                "rules": [
+                    {
+                        "id": "6.1.101.sample",
+                        "type": "vidhi",
+                        "conditions": {},
+                        "operation": {"type": "replace_text", "text": "x"},
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [sys.executable, "-m", "sanskrit_engine.cli", "coverage", str(stubs), str(rules)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    data = json.loads(result.stdout)
+
+    assert data["source_total"] == 2
+    assert data["covered_source_ids"] == 1
+
+
+def test_hydrate_rule_config_merges_inherited_context() -> None:
+    hydrated = hydrate_rule_config(
+        {
+            "rules": [
+                {
+                    "id": "parent",
+                    "type": "vidhi",
+                    "priority": 1,
+                    "conditions": {"target": {"tag": "stem"}},
+                    "operation": {"type": "noop"},
+                },
+                {
+                    "id": "child",
+                    "inherits": "parent",
+                    "conditions": {"right": {"tag": "sup"}},
+                    "operation": {"type": "delete"},
+                },
+            ]
+        }
+    )
+    child = hydrated["rules"][1]
+
+    assert child["conditions"]["target"] == {"tag": "stem"}
+    assert child["conditions"]["right"] == {"tag": "sup"}
+    assert child["operation"] == {"type": "delete"}
+
+
+def test_cli_hydrate_rules(tmp_path) -> None:
+    source = tmp_path / "rules.json"
+    output = tmp_path / "hydrated.json"
+    source.write_text(
+        json.dumps(
+            {
+                "rules": [
+                    {
+                        "id": "base",
+                        "conditions": {"target": {"tag": "x"}},
+                        "operation": {"type": "noop"},
+                    },
+                    {
+                        "id": "child",
+                        "inherits": ["base"],
+                        "operation": {"type": "delete"},
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    subprocess.run(
+        [sys.executable, "-m", "sanskrit_engine.cli", "hydrate-rules", str(source), str(output)],
+        check=True,
+    )
+    data = json.loads(output.read_text(encoding="utf-8"))
+
+    assert data["rules"][1]["conditions"]["target"]["tag"] == "x"
+    assert "inherits" not in data["rules"][1]

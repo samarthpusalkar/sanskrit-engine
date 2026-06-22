@@ -97,20 +97,40 @@ Check encoded-vs-stub rule coverage:
 python -m sanskrit_engine.cli inspect-rules data/rules/sandhi.json
 ```
 
+Validate derivations:
+
+```bash
+python -m sanskrit_engine.cli validate data/fixtures/derivations.json
+```
+
+Compare exported source stubs to executable packs:
+
+```bash
+python -m sanskrit_engine.cli coverage data/rule_stubs.json \
+  data/rules/sandhi.json data/rules/subanta.json data/rules/tinanta.json
+```
+
+Hydrate inherited rule configs:
+
+```bash
+python -m sanskrit_engine.cli hydrate-rules data/rules/raw.json data/rules/hydrated.json
+```
+
 ## Current Architecture
 
 1. Source sutras load from `ashtadhyayi-data`.
 2. `export-stubs` creates fillable executable rule configs.
 3. Humans/LLMs annotate each rule with machine conditions and operations.
-4. `Engine` applies rules over token tapes with deterministic conflict resolution.
-5. `SanskritParser` parses generated or external text into inspectable structure.
-6. `RuleBasedMorphology` derives noun/verb forms from executable rule packs.
-7. `SanskritGenerator` creates controlled sentences.
-8. `generate-jsonl` writes LLM/SLM training records with forms, glosses, rule IDs, and enforcement traces.
+4. `hydrate-rules` flattens inherited/anuvritti-like contexts.
+5. `Engine` applies rules over token tapes with deterministic conflict resolution.
+6. `SanskritParser` parses generated or external text into inspectable structure.
+7. `RuleBasedMorphology` derives noun/verb forms from executable rule packs.
+8. `SanskritGenerator` creates controlled sentences.
+9. `generate-jsonl` writes LLM/SLM training records with forms, glosses, rule IDs, and enforcement traces.
 
 ## Hard Truth
 
-This is not all 3983 rules encoded yet. It is the framework that makes encoding possible without hardcoding chaos. Starter packs now cover seed sandhi, a-stem subanta, and present parasmaipada tinanta. Next milestone is expanding these packs chapter-by-chapter against traditional examples.
+This is not all 3983 rules encoded yet. It is the framework that makes encoding possible without hardcoding chaos. Starter packs now cover seed sandhi, a-stem subanta, and present parasmaipada tinanta, with validation fixtures. Next milestone is expanding these packs chapter-by-chapter against traditional examples.
 
 See [ROADMAP.md](/Users/samarthpusalkar/Documents/sanskrit_engine/ROADMAP.md) and [docs/rule_authoring.md](/Users/samarthpusalkar/Documents/sanskrit_engine/docs/rule_authoring.md).
 

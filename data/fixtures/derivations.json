@@ -1,0 +1,142 @@
+{
+  "cases": [
+    {
+      "id": "sandhi.rama-asti",
+      "kind": "sandhi",
+      "rules": ["data/rules/sandhi.json"],
+      "input": ["rāmaḥ", "asti"],
+      "expected": "rāmo 'sti"
+    },
+    {
+      "id": "sandhi.deva-avatara",
+      "kind": "sandhi",
+      "rules": ["data/rules/sandhi.json"],
+      "input": ["deva", "avatāraḥ"],
+      "expected": "devāvatāraḥ"
+    },
+    {
+      "id": "subanta.rama-nom-sg",
+      "kind": "noun",
+      "rules": ["data/rules/subanta.json"],
+      "lemma": "rāma",
+      "gender": "masculine",
+      "case": "nominative",
+      "number": "singular",
+      "expected": "rāmaḥ"
+    },
+    {
+      "id": "subanta.rama-acc-sg",
+      "kind": "noun",
+      "rules": ["data/rules/subanta.json"],
+      "lemma": "rāma",
+      "gender": "masculine",
+      "case": "accusative",
+      "number": "singular",
+      "expected": "rāmam"
+    },
+    {
+      "id": "subanta.rama-inst-sg",
+      "kind": "noun",
+      "rules": ["data/rules/subanta.json"],
+      "lemma": "rāma",
+      "gender": "masculine",
+      "case": "instrumental",
+      "number": "singular",
+      "expected": "rāmeṇa"
+    },
+    {
+      "id": "subanta.rama-dat-sg",
+      "kind": "noun",
+      "rules": ["data/rules/subanta.json"],
+      "lemma": "rāma",
+      "gender": "masculine",
+      "case": "dative",
+      "number": "singular",
+      "expected": "rāmāya"
+    },
+    {
+      "id": "subanta.rama-gen-sg",
+      "kind": "noun",
+      "rules": ["data/rules/subanta.json"],
+      "lemma": "rāma",
+      "gender": "masculine",
+      "case": "genitive",
+      "number": "singular",
+      "expected": "rāmasya"
+    },
+    {
+      "id": "subanta.rama-loc-sg",
+      "kind": "noun",
+      "rules": ["data/rules/subanta.json"],
+      "lemma": "rāma",
+      "gender": "masculine",
+      "case": "locative",
+      "number": "singular",
+      "expected": "rāme"
+    },
+    {
+      "id": "subanta.rama-acc-pl",
+      "kind": "noun",
+      "rules": ["data/rules/subanta.json"],
+      "lemma": "rāma",
+      "gender": "masculine",
+      "case": "accusative",
+      "number": "plural",
+      "expected": "rāmān"
+    },
+    {
+      "id": "subanta.phala-nom-pl",
+      "kind": "noun",
+      "rules": ["data/rules/subanta.json"],
+      "lemma": "phala",
+      "gender": "neuter",
+      "case": "nominative",
+      "number": "plural",
+      "expected": "phalāni"
+    },
+    {
+      "id": "tinanta.gam-3sg-present",
+      "kind": "verb",
+      "rules": ["data/rules/tinanta.json"],
+      "root": "gam",
+      "present_stem": "gaccha",
+      "person": "third",
+      "number": "singular",
+      "tense": "present",
+      "expected": "gacchati"
+    },
+    {
+      "id": "tinanta.path-3pl-present",
+      "kind": "verb",
+      "rules": ["data/rules/tinanta.json"],
+      "root": "paṭh",
+      "present_stem": "paṭha",
+      "person": "third",
+      "number": "plural",
+      "tense": "present",
+      "expected": "paṭhanti"
+    },
+    {
+      "id": "tinanta.gam-1sg-present",
+      "kind": "verb",
+      "rules": ["data/rules/tinanta.json"],
+      "root": "gam",
+      "present_stem": "gaccha",
+      "person": "first",
+      "number": "singular",
+      "tense": "present",
+      "expected": "gacchāmi"
+    },
+    {
+      "id": "tinanta.path-2sg-present",
+      "kind": "verb",
+      "rules": ["data/rules/tinanta.json"],
+      "root": "paṭh",
+      "present_stem": "paṭha",
+      "person": "second",
+      "number": "singular",
+      "tense": "present",
+      "expected": "paṭhasi"
+    }
+  ]
+}

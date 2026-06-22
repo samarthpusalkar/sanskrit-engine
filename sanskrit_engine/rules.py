@@ -28,6 +28,7 @@ class Condition:
     text_in: frozenset[str] | None = None
     text_suffix: str | None = None
     text_prefix: str | None = None
+    text_contains: str | None = None
     tag: str | None = None
     has_tags: frozenset[str] = field(default_factory=frozenset)
     feature_equals: dict[str, Any] = field(default_factory=dict)
@@ -43,6 +44,7 @@ class Condition:
             text_in=frozenset(data["text_in"]) if "text_in" in data else None,
             text_suffix=data.get("text_suffix"),
             text_prefix=data.get("text_prefix"),
+            text_contains=data.get("text_contains"),
             tag=data.get("tag"),
             has_tags=frozenset(data.get("has_tags", [])),
             feature_equals=dict(data.get("feature_equals", {})),
@@ -63,6 +65,8 @@ class Condition:
             return False
         if self.text_prefix is not None and not token.text.startswith(self.text_prefix):
             return False
+        if self.text_contains is not None and self.text_contains not in token.text:
+            return False
         if self.tag is not None and self.tag not in token.tags:
             return False
         if self.has_tags and not self.has_tags.issubset(token.tags):
@@ -81,6 +85,7 @@ class Condition:
         score += self.text_in is not None
         score += self.text_suffix is not None
         score += self.text_prefix is not None
+        score += self.text_contains is not None
         score += self.tag is not None
         score += len(self.has_tags)
         score += len(self.feature_equals)

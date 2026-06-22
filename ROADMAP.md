@@ -22,6 +22,7 @@ Status: complete.
 - Load `ashtadhyayi-data/sutraani/data.txt`.
 - Load `ashtadhyayi-data/pratyahara/data.txt`.
 - Export 3983 sutras as executable rule stubs.
+- Hydrate inherited rule configs with `hydrate-rules`.
 
 Command:
 
@@ -102,9 +103,12 @@ Current evidence:
 
 ```bash
 python -m sanskrit_engine.cli inspect-rules data/rules/sandhi.json
+python -m sanskrit_engine.cli inspect-rules data/rules/subanta.json
+python -m sanskrit_engine.cli inspect-rules data/rules/tinanta.json
+python -m sanskrit_engine.cli validate data/fixtures/derivations.json
 ```
 
-shows first executable sandhi pack. Full 3983-sutra coverage remains pending.
+Current validation: 14 derivation cases pass. Full 3983-sutra coverage remains pending.
 
 Example full v0 pipeline:
 
@@ -121,6 +125,8 @@ Status: pending.
 
 - Convert all applicable sutras into executable rule objects.
 - Keep non-operational sutras as metadata/paribhasha constraints.
+- Use `inherits` + `hydrate-rules` for anuvritti-like context flattening.
 - Build validation suite from traditional examples.
+- Track source-stub coverage with `python -m sanskrit_engine.cli coverage`.
 - Add benchmark suite for recursive derivation.
 - Generate high-volume JSONL with provenance.

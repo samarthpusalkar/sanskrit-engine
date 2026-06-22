@@ -55,6 +55,24 @@
       }
     },
     {
+      "id": "3.4.78.sample.a.mip",
+      "name": "present first singular after a-stem: a + mip -> āmi",
+      "type": "vidhi",
+      "priority": 110,
+      "conditions": {
+        "target": {"tag": "verb_stem", "text_suffix": "a"},
+        "right": {"tag": "tin", "feature_equals": {"person": "first", "number": "singular", "tense": "present"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "ā",
+        "right_old": "mip",
+        "right_new": "mi",
+        "remove_right": true
+      }
+    },
+    {
       "id": "3.4.78.sample.sip",
       "name": "present second singular parasmaipada: stem + sip -> stemsi",
       "type": "vidhi",
@@ -74,4 +92,3 @@
     }
   ]
 }
-

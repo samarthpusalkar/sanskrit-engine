@@ -4,13 +4,16 @@ import argparse
 import json
 from pathlib import Path
 
+from .coverage import rule_coverage
 from .dataset import generate_jsonl
 from .enforcer import RuleEnforcer
 from .loader import load_rules
 from .generator import SanskritGenerator
 from .morphology import RuleBasedMorphology
 from .parser import SanskritParser
+from .preprocessor import hydrate_rule_file
 from .sutra import export_rule_stubs, load_sutras
+from .validator import report_to_dict, validate_fixture
 
 
 def main() -> None:
@@ -38,6 +41,17 @@ def main() -> None:
 
     inspect = subparsers.add_parser("inspect-rules")
     inspect.add_argument("rule_path", help="Executable rule JSON or exported stubs JSON")
+
+    validate = subparsers.add_parser("validate")
+    validate.add_argument("fixture_path", help="Derivation fixture JSON")
+
+    coverage = subparsers.add_parser("coverage")
+    coverage.add_argument("stub_path", help="Exported source rule stubs JSON")
+    coverage.add_argument("rule_paths", nargs="+", help="Executable rule JSON files")
+
+    hydrate = subparsers.add_parser("hydrate-rules")
+    hydrate.add_argument("input_path", help="Rule config with inherits fields")
+    hydrate.add_argument("output_path", help="Output fully hydrated rule config")
 
     args = parser.parse_args()
     if args.command == "export-stubs":
@@ -112,6 +126,21 @@ def main() -> None:
                 indent=2,
             )
         )
+    elif args.command == "validate":
+        report = validate_fixture(args.fixture_path)
+        print(json.dumps(report_to_dict(report), ensure_ascii=False, indent=2))
+        if not report.ok:
+            raise SystemExit(1)
+    elif args.command == "coverage":
+        print(
+            json.dumps(
+                rule_coverage(args.stub_path, args.rule_paths),
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+    elif args.command == "hydrate-rules":
+        hydrate_rule_file(args.input_path, args.output_path)
 
 
 def _count_by(records: list[dict], key: str) -> dict[str, int]:

@@ -124,10 +124,20 @@ class RuleBasedMorphology:
         supported = {
             ("masculine", "nominative", "singular"): "su",
             ("masculine", "accusative", "singular"): "am",
+            ("masculine", "instrumental", "singular"): "ṭā",
+            ("masculine", "dative", "singular"): "ṅe",
+            ("masculine", "genitive", "singular"): "ṅas",
+            ("masculine", "locative", "singular"): "ṅi",
             ("masculine", "nominative", "plural"): "jas",
+            ("masculine", "accusative", "plural"): "śas",
             ("neuter", "nominative", "singular"): "su",
             ("neuter", "accusative", "singular"): "am",
+            ("neuter", "instrumental", "singular"): "ṭā",
+            ("neuter", "dative", "singular"): "ṅe",
+            ("neuter", "genitive", "singular"): "ṅas",
+            ("neuter", "locative", "singular"): "ṅi",
             ("neuter", "nominative", "plural"): "jas",
+            ("neuter", "accusative", "plural"): "śas",
         }
         return supported[(gender, case, number)]
 
