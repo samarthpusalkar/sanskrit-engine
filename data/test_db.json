@@ -1,0 +1,23 @@
+{
+    "rules": [
+        {
+            "rule_id": "6.1.101",
+            "name": "akaha savarne dirghah",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun",
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token.get('pos'), 'text': (token['text'][0][:-1] + 'ā', token['text'][1][1:]) if token['text'][0][-1] == 'a' and token['text'][1][0] == 'a' else token['text']}"
+            }
+        }
+    ]
+}
