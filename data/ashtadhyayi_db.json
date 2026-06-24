@@ -54,6 +54,219 @@
                 "type": "lambda",
                 "executable": "lambda token, env: token[:-1] + {'i':'y', 'u':'v', 'ṛ':'r', 'ḷ':'l'}.get(token[-1], '') if token and token[-1] in ['i','u','ṛ','ḷ'] and env.get('next_char') and env['next_char'] in ['a','i','u','ṛ','ḷ','ā','ī','ū','ṝ','l̥','ā','ī','ū','ṝ','l̥','e','ai','o','au'] else token"
             }
+        },
+        {
+            "rule_id": "1.1.1",
+            "name": "vRddhirAdaic",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "R",
+                        "L"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token + 'A' if token and token[-1] in ['a', 'i', 'u', 'R', 'L'] and env.get('next') and env['next'][0] in ['a', 'A', 'i', 'I', 'u', 'U', 'f', 'F', 'x', 'X', 'e', 'o', 'E', 'O'] else token"
+            }
+        },
+        {
+            "rule_id": "1.1.2",
+            "name": "adeG guNaH",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "R",
+                        "L"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token[:-1] + token[-1].replace('a','A').replace('i','e').replace('u','o').replace('R','Ar').replace('L','Al') if token and token[-1] in ['a','i','u','R','L'] else token"
+            }
+        },
+        {
+            "rule_id": "1.1.3",
+            "name": "ikO guNavfdhI",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[:-1] + {'i': 'e', 'u': 'o', 'ṛ': 'āra', 'ḷ': 'āla'}[token[-1]]) if token and token[-1] in ['i', 'u', 'ṛ', 'ḷ'] and env.next_start_char and env.next_start_char in ['i', 'u', 'ṛ', 'ḷ'] else token"
+            }
+        },
+        {
+            "rule_id": "1.1.4",
+            "name": "na dhAtulopaH ARqadhAtuke",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (lambda t: t[:-1] if t and t[-1] in ['a','i','u','ṛ','ḷ'] and env['next_token'] and env['next_token'][0] in ['a','ā','i','ī','u','ū','ṛ','ṝ','ḷ','ē','ai','ō','au'] else t)(token.string if hasattr(token, 'string') else str(token))"
+            }
+        },
+        {
+            "rule_id": "1.1.5",
+            "name": "kkṅiti ca",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": false
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token + 'k' if token[-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and not env.get('right_context', {}).get('starts_with_savarna', False) else None"
+            }
+        },
+        {
+            "rule_id": "1.1.6",
+            "name": "dIdhIvevITAm",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token + 'v' if (token[-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and env.get('next', '').startswith(('a', 'ā', 'i', 'ī', 'u', 'ū', 'ṛ', 'ṝ', 'ḷ', 'ḹ'))) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.7",
+            "name": "halo'nantarāḥ saṃyogaḥ",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_consonant": true
+                },
+                "right_context": {
+                    "starts_with_consonant": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (lambda t: ''.join(t[:1]) + ''.join(t[1:]) if t and env['right_context'] and env['right_context'].get('starts_with_consonant') else t)(token.split() if isinstance(token, str) and ' ' in token else [token]) if isinstance(token, str) else str(token)"
+            }
+        },
+        {
+            "rule_id": "1.1.8",
+            "name": "mukhanAsikAvacano'numAsikaH",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token + 'M' if token[-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and env.right_context and env.right_context[0] in ['a', 'i', 'u', 'ṛ', 'ḷ', 'ā', 'ī', 'ū', 'ṝ', 'ḹ'] else token"
+            }
         }
     ]
 }
