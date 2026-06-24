@@ -61,13 +61,13 @@ class TensorTokenizer:
         This provides immediate Encoder functionality without requiring a massive FST un-gluer.
         """
         # We will generate mappings for a few core test words across all dimensions
-        target_roots = ["gam", "han", "dā", "bhū", "rāma", "deva", "avatāra", "kṛ"]
+        target_roots = ["gam", "han", "dā", "bhū", "rāma", "deva", "avatāra", "kṛ", "pustaka"]
         
         for root_str in target_roots:
             root_id = ROOT_VOCAB.get(root_str)
             if not root_id: continue
             
-            # If the root is typically a noun base (in our test set, rāma, deva, avatāra)
+            # If the root is typically a noun base (in our test set, rāma, deva, avatāra, pustaka)
             # Actually, let's just generate Noun and Verb forms for all roots to be thorough!
             
             # --- 1. VERB GENERATION (Present Tense) ---
@@ -83,18 +83,19 @@ class TensorTokenizer:
                         
             # --- 2. NOUN GENERATION ---
             # We'll generate Noun derivations using Ghañ (+1) for verbal roots, or none (+0) for nominal roots
-            is_nominal = root_str in ["rāma", "deva", "avatāra"]
+            is_nominal = root_str in ["rāma", "deva", "avatāra", "pustaka"]
             derivation_id = 0 if is_nominal else DERIVATION_VOCAB["ghañ"]
             
-            # [0, root, deriv, Noun(1), Masculine(1), Case(1..8), Number(1..3)]
-            for case_str, case_id in CASE_VOCAB.items():
-                for num_str, num_id in NUMBER_VOCAB.items():
-                    vec = [0, root_id, derivation_id, POS_VOCAB["noun"], GENDER_VOCAB["masculine"], case_id, num_id]
-                    try:
-                        surface_form = self.decode([TensorCoordinate(vec)])
-                        self.encode_cache[surface_form] = vec
-                    except Exception:
-                        pass
+            # [0, root, deriv, Noun(1), Gender(1..3), Case(1..8), Number(1..3)]
+            for gender_str, gender_id in GENDER_VOCAB.items():
+                for case_str, case_id in CASE_VOCAB.items():
+                    for num_str, num_id in NUMBER_VOCAB.items():
+                        vec = [0, root_id, derivation_id, POS_VOCAB["noun"], gender_id, case_id, num_id]
+                        try:
+                            surface_form = self.decode([TensorCoordinate(vec)])
+                            self.encode_cache[surface_form] = vec
+                        except Exception:
+                            pass
                         
             # --- 3. AVYAYA GENERATION ---
             if not is_nominal:
@@ -211,7 +212,7 @@ class TensorTokenizer:
                     base_string = upasarga_str + base_string
                     
             else:
-                raise ValueError(f"Unsupported POS ID or unknown POS: {pos_id}")
+                base_string = "[UNK]"
                 
             # Second pass: PANINIAN CONSISTENCY via Dynamic Matrix Fetching
             # The Tokenizer checks the RuleDatabase to see if any custom

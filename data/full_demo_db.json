@@ -55,6 +55,34 @@
                 "type": "lambda",
                 "executable": "lambda token, env: {'pos': token['pos'], 'text': token['text'][:-2] + '\u1e25', 'applied_rules': token.get('applied_rules', []) + ['Visarga Sandhi']} if token['text'].endswith('su') else token"
             }
+        },
+        {
+            "rule_id": "P. 7.1.12",
+            "name": "Ta-nasi-nasam inatsyah",
+            "category": "sandhi",
+            "priority": 300,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': token['text'][:-3] + 'sya', 'applied_rules': token.get('applied_rules', []) + ['P. 7.1.12']} if token['text'].endswith('a\u1e45as') else token"
+            }
+        },
+        {
+            "rule_id": "P. 6.1.107",
+            "name": "Ami Purvah",
+            "category": "sandhi",
+            "priority": 300,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': token['text'][:-3] + 'am', 'applied_rules': token.get('applied_rules', []) + ['Ami Purvah']} if token['text'].endswith('aam') else token"
+            }
         }
     ]
 }

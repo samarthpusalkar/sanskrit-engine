@@ -79,7 +79,7 @@ def populate_vocabularies(dhatu_filepath: str = None):
     # Initialize with core test words
     ROOT_VOCAB.update({
         "gam": 1, "han": 2, "dā": 3, "bhū": 4, 
-        "rāma": 5, "deva": 6, "avatāra": 7, "kṛ": 8
+        "rāma": 5, "deva": 6, "avatāra": 7, "kṛ": 8, "pustaka": 9
     })
     
     # Defaults for core test words
