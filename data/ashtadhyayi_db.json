@@ -1,0 +1,44 @@
+{
+    "rules": [
+        {
+            "rule_id": "6.1.101",
+            "name": "akaha savarne dirghah",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda t, env: (t[0][:-1] + 'ā' if t[0][-1] == 'a' else t[0], t[1][1:])"
+            }
+        },
+        {
+            "rule_id": "0.0.0",
+            "name": "Dummy Rule",
+            "category": "vidhi",
+            "priority": 0,
+            "domain": [],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda t, env: t"
+            }
+        }
+    ]
+}
