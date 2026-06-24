@@ -16,8 +16,13 @@ def test_config_index_dhatu_population():
         pytest.skip("dhatu_data.json not found locally to test massive population.")
 
 def test_rule_database_lambda_execution():
+    # Clean up old test db if exists
+    db_path = "data/test_db.json"
+    if os.path.exists(db_path):
+        os.remove(db_path)
+        
     # Create an in-memory rule database mapping
-    db = RuleDatabase("data/test_db.json")
+    db = RuleDatabase(db_path)
     
     # Insert a complex rule using the LLM compiler's JSON schema format
     mock_rule_data = {
