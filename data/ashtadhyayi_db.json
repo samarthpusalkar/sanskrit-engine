@@ -14557,6 +14557,165 @@
             }
         },
         {
+            "rule_id": "2.3.66",
+            "name": "ubhayaprāptau karmaṇi |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "ā",
+                        "ī",
+                        "ū",
+                        "ṛ",
+                        "ṝ",
+                        "ḷ",
+                        "ai",
+                        "au",
+                        "a",
+                        "i",
+                        "u",
+                        "e",
+                        "o"
+                    ],
+                    "case": "षष्ठी"
+                },
+                "right_context": {
+                    "starts_with_vowel": false
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0].rstrip('āiīūṛṝḷaeou') + 'au', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'].rstrip('āiīūṛṝḷaeou') + 'au'} if token.get('text', '').endswith(('ā', 'i', 'ī', 'u', 'ū', 'ṛ', 'ṝ', 'ḷ', 'a', 'e', 'o')) else token) if env.get('case') == 'षष्ठी' and not env.get('anabhihite') else token"
+            }
+        },
+        {
+            "rule_id": "2.3.67",
+            "name": "ktasya ca vartamāne |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "inherited_case": "ṣaṣṭhī"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1][:-1] + 'a') if isinstance(token, tuple) and token[1].endswith('a') else (token[0] + 'a', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'a'} if isinstance(token, dict) and token['text'].endswith('a') else ({**token, 'text': token['text'] + 'a'} if isinstance(token, dict) else token))"
+            }
+        },
+        {
+            "rule_id": "2.3.68",
+            "name": "adhikaraṇavācinaśca |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "token_type": "dict",
+                    "pos": "avyaya",
+                    "inherited_case": "ṣaṣṭhī",
+                    "function": "śeṣa"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token if isinstance(token, tuple) else ({**token, 'padaccheda': token['text'] + 'z'} if isinstance(token, dict) and token.get('text', '').endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token)"
+            }
+        },
+        {
+            "rule_id": "2.3.69",
+            "name": "na lokāvyayaniṣṭhākhalarthatṛnām |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "in_anuvrtti": "ṣaṣṭhī",
+                    "ends_with_suffix": [
+                        "lok",
+                        "avyaya",
+                        "niṣṭhā",
+                        "akhala",
+                        "artha",
+                        "tṝ"
+                    ]
+                },
+                "right_context": {
+                    "is_in_list": [
+                        "lok",
+                        "avyaya",
+                        "niṣṭhā",
+                        "akhala",
+                        "artha",
+                        "tṝ"
+                    ]
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token if (isinstance(token, tuple) and len(token) == 2) or (isinstance(token, dict) and token.get('text', '')[-5:] not in ('lokam', 'avyayam', 'niṣṭhā', 'akhalam', 'artham', 'tṝm')) else None"
+            }
+        },
+        {
+            "rule_id": "2.3.70",
+            "name": "akenorbhaviṣyadādhamarṇyayoḥ |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true,
+                    "in_accusative": true,
+                    "in_future_tense": true,
+                    "in_gradative": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'au', token[1]) if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else (token[0] + 'au',) + token[1:] if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'au'} if isinstance(token, dict) and token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token)"
+            }
+        },
+        {
             "rule_id": "1.2.64",
             "name": "sarūpāṇāmekaśeṣa ekavibhaktau |",
             "category": "apavada",
