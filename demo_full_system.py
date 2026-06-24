@@ -92,38 +92,46 @@ def demo_algebra(tokenizer):
     base = TensorCoordinate([0, root_id, 2, 1, 1, 1])
     print(f"[Base Vector]:  {base.vector} -> Decodes to: {tokenizer.decode([base])}")
     
-    print("\nEnter a surgical TensorDelta to apply.")
-    print("Example: '0 0 0 1 0 0' adds +1 to Tense (Present(1) -> Perfect(2))")
-    print("Example: '1 0 0 0 0 0' adds +1 to Upasarga (None(0) -> pra(1))")
-    print("Example: '0 0 0 0 0 2' adds +2 to Number (Singular(1) -> Plural(3))")
+    print("\nEnter surgical TensorDeltas to apply (Press Enter for 0 / no change)")
     
-    delta_input = input("Enter 6 integers separated by space: ").strip()
-    try:
-        delta_vals = [int(x) for x in delta_input.split()]
-        if len(delta_vals) != 6:
-            raise ValueError("Must provide exactly 6 integers.")
-        delta = TensorDelta(delta_vals)
-    except ValueError:
-        print("Invalid delta format.")
-        input("\nPress Enter to return to menu...")
-        return
-        
-    perfect_vector = base + delta
-    print(f"\n[Result Matrix]: {perfect_vector.vector}")
+    prompts = [
+        "1. Upasarga Delta (+1=pra, +4=sam, +11=vi, +12=ā) [0]: ",
+        "2. Root Delta [0]: ",
+        "3. POS Delta [0]: ",
+        "4. Tense Delta (+1=Perfect, +2=Future) [0]: ",
+        "5. Person Delta (+1=Second, +2=First) [0]: ",
+        "6. Number Delta (+1=Dual, +2=Plural) [0]: "
+    ]
+    
+    delta_vals = []
+    for i in range(6):
+        user_input = input(prompts[i]).strip()
+        if user_input in ["", "0"]:
+            delta_vals.append(0)
+        else:
+            try:
+                delta_vals.append(int(user_input))
+            except ValueError:
+                print("Invalid input. Defaulting to 0.")
+                delta_vals.append(0)
+                
+    delta = TensorDelta(delta_vals)
+    mutated = base + delta
+    
+    print(f"\n[Result Matrix]: {mutated.vector}")
     
     print("\nDetokenizing mutated matrix...")
-    # Map the new vector to environment variables to show what DB sees
+    
     env = {
         "root": user_root,
         "pos": "verb",
-        "tense": REV_TENSE.get(perfect_vector.vector[2], "unknown"),
-        "person": REV_PERSON.get(perfect_vector.vector[3], "unknown"),
-        "number": REV_NUMBER.get(perfect_vector.vector[4], "unknown")
+        "tense": REV_TENSE.get(mutated.vector[3], "unknown"),
+        "person": REV_PERSON.get(mutated.vector[4], "unknown"),
+        "number": REV_NUMBER.get(mutated.vector[5], "unknown")
     }
     
-    # Let's show rule execution
     token = {"pos": "verb", "text": user_root, "applied_rules": []}
-    rules = tokenizer.rule_db.get_applicable_rules(token, env)
+    rules = tokenizer.rule_db.get_applicable_rules(token, env) if tokenizer.rule_db else []
     
     if len(rules) > 0:
         print(f"-> RuleDatabase matched {len(rules)} potential Paninian Exceptions for this semantic state!")
@@ -136,7 +144,7 @@ def demo_algebra(tokenizer):
     else:
         print("-> RuleDatabase matched 0 specific exceptions. Using standard base morphology.")
         
-    print(f"\n[Final Output String]: {tokenizer.decode([perfect_vector])}")
+    print(f"\n[Final Output String]: {tokenizer.decode([mutated])}")
     input("\nPress Enter to continue...")
 
 def demo_pipeline():
