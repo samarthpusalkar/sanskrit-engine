@@ -52,75 +52,95 @@ class TensorTokenizer:
         self.morphology = morphology
         self.parser = SanskritParser()
         self.rule_db = rule_db
-        self.encode_cache = {}
-        self._build_encode_cache()
+        self.stem_map = {}
+        self._build_stem_map()
         
-    def _build_encode_cache(self):
+    def _build_stem_map(self):
         """
-        Pre-generates a high-speed reverse-lookup dictionary mapping surface strings back to 7D vectors.
-        This provides immediate Encoder functionality without requiring a massive FST un-gluer.
+        Builds a fast reverse Stem Map (O(N) initialization) mapping mathematically derived base stems
+        (e.g., 'gacch', 'rama') back to their pure Root IDs, evaluating only 2 states per root.
         """
-        # We will generate mappings for a few core test words across all dimensions
-        target_roots = ["gam", "han", "dā", "bhū", "rāma", "deva", "avatāra", "kṛ", "pustaka"]
-        
-        for root_str in target_roots:
-            root_id = ROOT_VOCAB.get(root_str)
-            if not root_id: continue
+        self.stem_map = {}
+        for root_str, root_id in ROOT_VOCAB.items():
+            self.stem_map[root_str] = root_id
             
-            # If the root is typically a noun base (in our test set, rāma, deva, avatāra, pustaka)
-            # Actually, let's just generate Noun and Verb forms for all roots to be thorough!
+            # Find Present Tense Stem
+            vec = [0, root_id, 0, POS_VOCAB["verb"], TENSE_VOCAB["present"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]]
+            try:
+                surface = self.decode([TensorCoordinate(vec)]) 
+                stem = surface
+                if surface.endswith("anti"): stem = surface[:-4]
+                elif surface.endswith("ante"): stem = surface[:-4]
+                elif surface.endswith("ti"): stem = surface[:-2]
+                elif surface.endswith("te"): stem = surface[:-2]
+                
+                # Cache both with and without vikarana 'a'
+                if stem.endswith("a"):
+                    self.stem_map[stem[:-1]] = root_id
+                self.stem_map[stem] = root_id
+            except: pass
             
-            # --- 1. VERB GENERATION (Present Tense) ---
-            # [0, root, 0, Verb(2), Present(1), Person(1..3), Number(1..3)]
-            for person_str, person_id in PERSON_VOCAB.items():
-                for num_str, num_id in NUMBER_VOCAB.items():
-                    vec = [0, root_id, 0, POS_VOCAB["verb"], TENSE_VOCAB["present"], person_id, num_id]
-                    try:
-                        surface_form = self.decode([TensorCoordinate(vec)])
-                        self.encode_cache[surface_form] = vec
-                    except Exception:
-                        pass
-                        
-            # --- 2. NOUN GENERATION ---
-            # We'll generate Noun derivations using Ghañ (+1) for verbal roots, or none (+0) for nominal roots
+            # Find Nominal Stem
             is_nominal = root_str in ["rāma", "deva", "avatāra", "pustaka"]
             derivation_id = 0 if is_nominal else DERIVATION_VOCAB["ghañ"]
-            
-            # [0, root, deriv, Noun(1), Gender(1..3), Case(1..8), Number(1..3)]
-            for gender_str, gender_id in GENDER_VOCAB.items():
-                for case_str, case_id in CASE_VOCAB.items():
-                    for num_str, num_id in NUMBER_VOCAB.items():
-                        vec = [0, root_id, derivation_id, POS_VOCAB["noun"], gender_id, case_id, num_id]
-                        try:
-                            surface_form = self.decode([TensorCoordinate(vec)])
-                            self.encode_cache[surface_form] = vec
-                        except Exception:
-                            pass
-                        
-            # --- 3. AVYAYA GENERATION ---
-            if not is_nominal:
-                # ktvā (+3) -> [0, root, ktva, Avyaya(6), 0, 0, 0]
-                vec_ktva = [0, root_id, DERIVATION_VOCAB["ktvā"], POS_VOCAB["avyaya"], 0, 0, 0]
-                try:
-                    self.encode_cache[self.decode([TensorCoordinate(vec_ktva)])] = vec_ktva
-                except: pass
+            vec_noun = [0, root_id, derivation_id, POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
+            try:
+                surface = self.decode([TensorCoordinate(vec_noun)])
+                if surface.endswith("ḥ"):
+                    self.stem_map[surface[:-1]] = root_id
+            except: pass
 
     def encode(self, text: str) -> List[TensorCoordinate]:
         """
-        Parses text and encodes into a sequence of integer TensorCoordinates using the cache.
+        Parses text and encodes into integer TensorCoordinates using an Inverse Suffix Parser.
         """
         tensors = []
         words = text.split()
         
+        # Mapping common suffixes for inverse parsing (Prototype)
+        suffix_map_verb = {
+            "anti": (PERSON_VOCAB["third"], NUMBER_VOCAB["plural"]),
+            "ante": (PERSON_VOCAB["third"], NUMBER_VOCAB["plural"]),
+            "ti": (PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]),
+            "te": (PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]),
+        }
+        suffix_map_noun = {
+            "sya": (CASE_VOCAB["genitive"], NUMBER_VOCAB["singular"]),
+            "am": (CASE_VOCAB["accusative"], NUMBER_VOCAB["singular"]),
+            "ḥ": (CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]),
+        }
+        
         for word in words:
-            # Simple space-delimited lookup
-            if word in self.encode_cache:
-                tensors.append(TensorCoordinate(self.encode_cache[word]))
-            else:
-                print(f"[!] ENCODER WARNING: Word '{word}' not found in high-speed vocabulary cache.")
-                # We return a zeroed out error tensor or just skip it.
-                # For LLM robustness, an unknown token is better than crashing.
-                tensors.append(TensorCoordinate([0, 0, 0, 0, 0, 0, 0]))
+            tensor = None
+            
+            # 1. Try stripping Verb Suffixes
+            for suff, (pers, num) in suffix_map_verb.items():
+                if word.endswith(suff):
+                    stem = word[:-len(suff)]
+                    if stem.endswith("a"): stem = stem[:-1] # strip class vikarana
+                    root_id = self.stem_map.get(stem)
+                    if root_id:
+                        tensor = [0, root_id, 0, POS_VOCAB["verb"], TENSE_VOCAB["present"], pers, num]
+                        break
+            
+            # 2. Try stripping Noun Suffixes
+            if tensor is None:
+                for suff, (cas, num) in suffix_map_noun.items():
+                    if word.endswith(suff):
+                        stem = word[:-len(suff)]
+                        root_id = self.stem_map.get(stem)
+                        if root_id:
+                            is_nominal = root_id in [5, 6, 7, 9] # Static nouns
+                            derivation_id = 0 if is_nominal else DERIVATION_VOCAB["ghañ"]
+                            gender = GENDER_VOCAB["neuter"] if suff == "am" and is_nominal else GENDER_VOCAB["masculine"]
+                            tensor = [0, root_id, derivation_id, POS_VOCAB["noun"], gender, cas, num]
+                            break
+                            
+            if tensor is None:
+                print(f"[!] ENCODER WARNING: Inverse Parser failed to strip suffix for '{word}'.")
+                tensor = [0, 0, 0, 0, 0, 0, 0]
+                
+            tensors.append(TensorCoordinate(tensor))
                 
         return tensors
 
