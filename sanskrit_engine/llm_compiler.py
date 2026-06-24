@@ -27,6 +27,12 @@ class OllamaCloudClient:
         Sutra: {sutra_text}
         Meaning: {meaning_text}
         
+        CRITICAL PYTHON CONSTRAINTS:
+        1. `token` can either be a tuple of two strings (e.g., `("rāma", "avatāra")`) for Sandhi rules, OR a dictionary (e.g., `{{"text": "bhū", "pos": "verb"}}`) for morphology rules.
+        2. ALWAYS use `isinstance(token, tuple)` or `isinstance(token, dict)` to check the type before applying string or dictionary methods. Do not assume `token` is always a dict or always a tuple.
+        3. ONLY use standard Python built-in methods (like `.endswith()`, `[:-1]`, etc). DO NOT hallucinate nonexistent methods like `token.get_vowel()` or `token.is_consonant()`.
+        4. The lambda must return the modified token in the exact same data type it received (e.g., if token is a tuple, return a modified tuple. If it is a dict, return a dict).
+
         Output valid JSON with the following structure:
         {{
             "rule_id": "X.X.X",  // EXACTLY format like "6.1.101" (Do NOT include "P." or spaces)
@@ -114,10 +120,16 @@ class AshtadhyayiCompiler:
             from .rule_database import PaniniRule
             temp_rule = PaniniRule(rule_data)
             
-            # Simple smoke test on the lambda
+            # Rigorous smoke test on the lambda with BOTH supported data structures
             if temp_rule.operation_data.get("type") == "lambda":
-                mock_token = ("rāma", "avatāra")
-                temp_rule.operation_func(mock_token, {})
+                mock_tuple = ("rāma", "avatāra")
+                mock_dict = {"text": "bhū", "pos": "verb"}
+                
+                # Test tuple handling
+                temp_rule.operation_func(mock_tuple, {})
+                # Test dict handling
+                temp_rule.operation_func(mock_dict, {})
+                
             return True, ""
         except Exception as e:
             return False, str(e)
