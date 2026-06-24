@@ -11,7 +11,16 @@ POS_VOCAB = {
     "verb": 2,
     "prefix": 3,
     "sandhi_modifier": 4,
-    "samasa_component": 5
+    "samasa_component": 5,
+    "avyaya": 6
+}
+
+DERIVATION_VOCAB = {
+    "none": 0,
+    "ghañ": 1,   # Verb -> Noun (Action/Abstract)
+    "lyuṭ": 2,   # Verb -> Noun (Instrument/Action)
+    "ktvā": 3,   # Verb -> Avyaya (Gerund, having done)
+    "tumun": 4   # Verb -> Avyaya (Infinitive, to do)
 }
 
 # --- Verbal Transformations ---
@@ -140,3 +149,4 @@ REV_NUMBER = {v: k for k, v in NUMBER_VOCAB.items()}
 REV_CASE = {v: k for k, v in CASE_VOCAB.items()}
 REV_GENDER = {v: k for k, v in GENDER_VOCAB.items()}
 REV_UPASARGA = {v: k for k, v in UPASARGA_VOCAB.items()}
+REV_DERIVATION = {v: k for k, v in DERIVATION_VOCAB.items()}

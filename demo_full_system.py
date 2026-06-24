@@ -87,9 +87,9 @@ def demo_algebra(tokenizer):
         return
         
     root_id = ROOT_VOCAB.get(user_root)
-    print(f"\nConstructing Present Tense Base Vector for '{user_root}'...")
-    # 6D Base Vector: [upasarga(0), root, pos(verb=2), tense(pres=1), person(3rd=1), num(sing=1)]
-    base = TensorCoordinate([0, root_id, 2, 1, 1, 1])
+    print(f"\nConstructing Base Vector for '{user_root}'...")
+    # 7D Base Vector: [upasarga(0), root, derivation(0), pos(verb=2), tense(pres=1), person(3rd=1), num(sing=1)]
+    base = TensorCoordinate([0, root_id, 0, 2, 1, 1, 1])
     print(f"[Base Vector]:  {base.vector} -> Decodes to: {tokenizer.decode([base])}")
     
     print("\nEnter surgical TensorDeltas to apply (Press Enter for 0 / no change)")
@@ -97,14 +97,15 @@ def demo_algebra(tokenizer):
     prompts = [
         "1. Upasarga Delta (+1=pra, +4=sam, +11=vi, +12=ā) [0]: ",
         "2. Root Delta [0]: ",
-        "3. POS Delta [0]: ",
-        "4. Tense Delta (+1=Perfect, +2=Future) [0]: ",
-        "5. Person Delta (+1=Second, +2=First) [0]: ",
-        "6. Number Delta (+1=Dual, +2=Plural) [0]: "
+        "3. Derivation Delta (+1=ghañ[Noun], +3=ktvā[Avyaya]) [0]: ",
+        "4. POS Delta (-1=Noun, +4=Avyaya) [0]: ",
+        "5. Feature 1 Delta (Tense/Gender) [0]: ",
+        "6. Feature 2 Delta (Person/Case) [0]: ",
+        "7. Feature 3 Delta (Number) [0]: "
     ]
     
     delta_vals = []
-    for i in range(6):
+    for i in range(7):
         user_input = input(prompts[i]).strip()
         if user_input in ["", "0"]:
             delta_vals.append(0)
@@ -124,10 +125,10 @@ def demo_algebra(tokenizer):
     
     env = {
         "root": user_root,
-        "pos": "verb",
-        "tense": REV_TENSE.get(mutated.vector[3], "unknown"),
-        "person": REV_PERSON.get(mutated.vector[4], "unknown"),
-        "number": REV_NUMBER.get(mutated.vector[5], "unknown")
+        "pos": "verb", # Default for rule lookup, tokenizer calculates dynamic POS
+        "f1": mutated.vector[4],
+        "f2": mutated.vector[5],
+        "f3": mutated.vector[6]
     }
     
     token = {"pos": "verb", "text": user_root, "applied_rules": []}

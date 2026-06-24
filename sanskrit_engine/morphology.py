@@ -75,6 +75,65 @@ class RuleBasedMorphology:
     def __init__(self, rules: list[Rule]) -> None:
         self.engine = Engine(rules)
 
+    def derive(self, root: str, derivation_type: str) -> str:
+        """
+        Kṛdanta / Taddhita Engine (V2 Accelerated)
+        Mathematically derives a nominal or indeclinable base from a verbal root.
+        """
+        if derivation_type == "none" or not derivation_type:
+            return root
+            
+        # Vṛddhi mutation map for Ghañ
+        vrddhi_map = {'a': 'ā', 'i': 'ai', 'ī': 'ai', 'u': 'au', 'ū': 'au', 'ṛ': 'ār', 'ṝ': 'ār'}
+        # Guṇa mutation map for Lyuṭ / Tumun
+        guna_map = {'i': 'e', 'ī': 'e', 'u': 'o', 'ū': 'o', 'ṛ': 'ar', 'ṝ': 'ar'}
+        
+        # Helper: apply mutation to the root vowel
+        def apply_mutation(r: str, mutation_map: dict) -> str:
+            # Simple heuristic: mutate the first vowel found
+            for i, char in enumerate(r):
+                if char in mutation_map:
+                    return r[:i] + mutation_map[char] + r[i+1:]
+            return r
+
+        if derivation_type == "ghañ":
+            # Ghañ derives masculine abstract nouns. Root vowel takes Vṛddhi.
+            # e.g., ram -> rāma, bhū -> bhāva
+            stem = apply_mutation(root, vrddhi_map)
+            if stem.endswith('au'): # bhū -> bhau -> bhāv
+                stem = stem[:-2] + 'āv'
+            elif stem.endswith('ai'): # nī -> nai -> nāy
+                stem = stem[:-2] + 'āy'
+            return stem + 'a'
+            
+        elif derivation_type == "lyuṭ":
+            # Lyuṭ derives neuter action nouns. Root vowel takes Guṇa + ana.
+            # e.g., gam -> gamana, bhū -> bhavana
+            stem = apply_mutation(root, guna_map)
+            if stem.endswith('o'): # bhū -> bho -> bhav
+                stem = stem[:-1] + 'av'
+            elif stem.endswith('e'): # nī -> ne -> nay
+                stem = stem[:-1] + 'ay'
+            return stem + 'ana'
+            
+        elif derivation_type == "ktvā":
+            # Ktvā derives indeclinable gerunds (having done). Root is often weak.
+            # e.g., gam -> gatvā (m drops), kṛ -> kṛtvā
+            stem = root
+            if stem.endswith('m') or stem.endswith('n'):
+                stem = stem[:-1]
+            return stem + 'tvā'
+            
+        elif derivation_type == "tumun":
+            # Tumun derives infinitive. Root takes Guṇa + tum.
+            # e.g., gam -> gantum
+            stem = apply_mutation(root, guna_map)
+            if stem.endswith('m'):
+                stem = stem[:-1] + 'n'
+            return stem + 'tum'
+            
+        return root
+
     def decline(self, noun: NounEntry, case: str, number: str) -> GeneratedForm:
         suffix = self._sup_suffix(noun.gender, case, number)
         tokens = [

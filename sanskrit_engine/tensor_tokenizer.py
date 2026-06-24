@@ -74,37 +74,45 @@ class TensorTokenizer:
         for coord in coordinates:
             vec = coord.vector
             
-            # Dynamically handle 5D (Nouns) and 6D (Verbs) tensors
-            if len(vec) == 6:
-                upasarga_id, root_id, pos_id, f1, f2, f3 = vec
-            elif len(vec) == 5:
-                upasarga_id = 0
-                root_id, pos_id, f1, f2, f3 = vec
+            # Unified 7D Tensor Topology
+            if len(vec) == 7:
+                upasarga_id, root_id, derivation_id, pos_id, f1, f2, f3 = vec
             else:
-                raise ValueError(f"Invalid tensor dimension: {len(vec)}")
+                raise ValueError(f"Invalid tensor dimension: {len(vec)}. Must be 7D.")
                 
             root_str = REV_ROOT.get(root_id, "unknown")
             pos_str = REV_POS.get(pos_id, "unknown")
             upasarga_str = REV_UPASARGA.get(upasarga_id, "") if upasarga_id != 0 else ""
+            derivation_str = REV_DERIVATION.get(derivation_id, "none") if derivation_id != 0 else "none"
+            
+            # Step 1: Kṛdanta Derivation (Mathematical Root Transformation)
+            derived_stem = self.morphology.derive(root_str, derivation_str)
             
             # The base grammatical string to be modified
-            base_string = root_str
+            base_string = derived_stem
             
             # The semantic environment derived from the tensor matrix
             env = {
                 "root": root_str,
+                "derived_stem": derived_stem,
+                "derivation": derivation_str,
                 "pos": pos_str
             }
             
+            # Step 2: Part-of-Speech Declension/Conjugation
             if pos_str == "noun":
                 env["gender"] = REV_GENDER.get(f1, "masculine")
                 env["case"] = REV_CASE.get(f2, "nominative")
                 env["number"] = REV_NUMBER.get(f3, "singular")
                 
                 # First pass: use generic morphology generator
-                entry = NounEntry(root_str, env["gender"], "Unknown")
+                entry = NounEntry(derived_stem, env["gender"], "Unknown")
                 base_string = self.morphology.decline(entry, env["case"], env["number"]).text
                 
+                # Prepend Upasarga for nominal derivations (e.g., pra-bhāva)
+                if upasarga_str:
+                    base_string = upasarga_str + base_string
+                    
             elif pos_str == "verb":
                 env["tense"] = REV_TENSE.get(f1, "present")
                 env["person"] = REV_PERSON.get(f2, "third")
@@ -117,30 +125,33 @@ class TensorTokenizer:
                 env["settva"] = dhatu_meta.get("settva", "S")
                 
                 # First pass: generic conjugation with Vikarana
-                # Gana 1 (Bhvadi) gets 'a' vikarana, Gana 4 (Divadi) gets 'ya'
-                # NOTE: Vikarana is usually only applied in Sarvadhatuka tenses (like Present).
-                # For Future (Lrt), the vikarana is dropped and 'sya' is added.
                 if env["tense"] == "present":
                     if env["gana"] == "1":
-                        present_stem = root_str + "a"
+                        present_stem = derived_stem + "a"
                     elif env["gana"] == "4":
-                        present_stem = root_str + "ya"
+                        present_stem = derived_stem + "ya"
                     else:
-                        present_stem = root_str
+                        present_stem = derived_stem
                 else:
-                    present_stem = root_str # No vikarana for Future (Ardhadhatuka)
+                    present_stem = derived_stem
                     
-                entry = VerbEntry(root_str, present_stem, "Unknown")
+                entry = VerbEntry(derived_stem, present_stem, "Unknown")
                 try:
                     base_string = self.morphology.conjugate(entry, env["person"], env["number"], env["tense"], env["voice"], env["settva"]).text
                 except ValueError:
-                    # Base engine doesn't support this tense, fallback to root and let RuleDB handle it
-                    base_string = root_str
+                    base_string = derived_stem
                     
                 # Prepend Upasarga
                 if upasarga_str:
                     base_string = upasarga_str + base_string
-                
+                    
+            elif pos_str == "avyaya":
+                # Indeclinables do not take su/ti suffixes
+                base_string = derived_stem
+                # Prepend Upasarga
+                if upasarga_str:
+                    base_string = upasarga_str + base_string
+                    
             else:
                 raise ValueError(f"Unsupported POS ID or unknown POS: {pos_id}")
                 
