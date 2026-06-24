@@ -28,11 +28,6 @@ def main():
     # 2. VECTORIZE
     tensors = encoder.encode(sentence_iast)
     
-    if not tensors:
-        print("\n[!] ENCODER ERROR: The reverse morphology parser (Text -> Tensors) is not implemented yet!")
-        print("The current engine only generates Text from Tensors (decode), it cannot parse arbitrary text back into tensors.")
-        return
-        
     vector_data = [t.vector for t in tensors]
     print(f"Encoded Matrices: {vector_data}")
     

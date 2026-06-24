@@ -39,7 +39,11 @@ class PaniniRule:
         """
         # Complex JSON logic validator goes here.
         # For prototype, we assume true if domain matches.
-        pos = token.get("pos")
+        if isinstance(token, dict):
+            pos = token.get("pos")
+        else:
+            pos = env.get("pos")
+            
         if self.domain and pos not in self.domain:
             return False
         return True
