@@ -65,6 +65,12 @@ def populate_vocabularies(dhatu_filepath: str = None):
     
     # Load from dynamic JSON database if available
     if dhatu_filepath and os.path.exists(dhatu_filepath):
+        try:
+            from indic_transliteration import sanscript
+        except ImportError:
+            print("Warning: indic_transliteration not installed. Dhatus will not be loaded.")
+            return
+
         with open(dhatu_filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
             # Assuming 'data' contains an array of dhatu objects from Ashtadhyayi-data
@@ -72,13 +78,17 @@ def populate_vocabularies(dhatu_filepath: str = None):
             max_id = max(ROOT_VOCAB.values()) if ROOT_VOCAB else 0
             
             for item in dhatu_list:
-                d_name = item.get("dhatu")
-                if d_name and d_name not in ROOT_VOCAB:
-                    max_id += 1
-                    ROOT_VOCAB[d_name] = max_id
+                d_name_devanagari = item.get("dhatu")
+                if d_name_devanagari:
+                    # Translate traditional Devanagari to phonetic IAST so tensor maths works
+                    d_name_iast = sanscript.transliterate(d_name_devanagari, sanscript.DEVANAGARI, sanscript.IAST)
+                    if d_name_iast not in ROOT_VOCAB:
+                        max_id += 1
+                        ROOT_VOCAB[d_name_iast] = max_id
                     
-    # Generate Reverse Index
-    REV_ROOT = {v: k for k, v in ROOT_VOCAB.items()}
+    # Generate Reverse Index by mutating in-place so imported references update
+    REV_ROOT.clear()
+    REV_ROOT.update({v: k for k, v in ROOT_VOCAB.items()})
 
 # Initial population using static defaults
 populate_vocabularies()

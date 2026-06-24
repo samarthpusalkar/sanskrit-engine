@@ -1,0 +1,32 @@
+{
+    "rules": [
+        {
+            "rule_id": "P. 6.1.8 (bhu_perfect)",
+            "name": "Bhu Perfect Reduplication",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': 'babhūva', 'applied_rules': token.get('applied_rules', []) + ['P. 6.1.8 (Liti Dhatur Anabhyasasya)']} if env.get('root') == 'bhū' and env.get('tense') == 'perfect' else token"
+            }
+        },
+        {
+            "rule_id": "P. 7.3.54 (han_plural_shift)",
+            "name": "Han Plural Consonant Shift",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': 'ghnanti', 'applied_rules': token.get('applied_rules', []) + ['P. 7.3.54 (Ho Hante Nninesu)']} if env.get('root') == 'han' and env.get('tense') == 'present' and env.get('number') == 'plural' else token"
+            }
+        }
+    ]
+}
