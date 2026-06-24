@@ -197,8 +197,17 @@ class RuleBasedMorphology:
             ("neuter", "locative", "singular"): "ṅi",
             ("neuter", "nominative", "plural"): "jas",
             ("neuter", "accusative", "plural"): "śas",
+            
+            ("feminine", "nominative", "singular"): "su",
+            ("feminine", "accusative", "singular"): "am",
+            ("feminine", "instrumental", "singular"): "ṭā",
+            ("feminine", "dative", "singular"): "ṅe",
+            ("feminine", "genitive", "singular"): "ṅas",
+            ("feminine", "locative", "singular"): "ṅi",
+            ("feminine", "nominative", "plural"): "jas",
+            ("feminine", "accusative", "plural"): "śas",
         }
-        return supported[(gender, case, number)]
+        return supported.get((gender, case, number), "su") # fallback to su to prevent crashes
 
     @staticmethod
     def _tin_suffix(person: str, number: str, tense: str, voice: str, settva: str) -> str:

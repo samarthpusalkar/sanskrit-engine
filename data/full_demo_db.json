@@ -11,7 +11,7 @@
             "conditions": {},
             "operation": {
                 "type": "lambda",
-                "executable": "lambda token, env: {'pos': token['pos'], 'text': 'babhūva', 'applied_rules': token.get('applied_rules', []) + ['P. 6.1.8 (Liti Dhatur Anabhyasasya)']} if env.get('root') == 'bhū' and env.get('tense') == 'perfect' else token"
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': 'babh\u016bva', 'applied_rules': token.get('applied_rules', []) + ['P. 6.1.8 (Liti Dhatur Anabhyasasya)']} if env.get('root') == 'bh\u016b' and env.get('tense') == 'perfect' else token"
             }
         },
         {
@@ -26,6 +26,34 @@
             "operation": {
                 "type": "lambda",
                 "executable": "lambda token, env: {'pos': token['pos'], 'text': 'ghnanti', 'applied_rules': token.get('applied_rules', []) + ['P. 7.3.54 (Ho Hante Nninesu)']} if env.get('root') == 'han' and env.get('tense') == 'present' and env.get('number') == 'plural' else token"
+            }
+        },
+        {
+            "rule_id": "P. 7.3.77",
+            "name": "Isu-gami-yamam Chah",
+            "category": "vidhi",
+            "priority": 200,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': token['text'].replace('gam', 'gacch'), 'applied_rules': token.get('applied_rules', []) + ['P. 7.3.77 (Isu-gami-yamam Chah)']} if env.get('root') == 'gam' and env.get('tense') == 'present' else token"
+            }
+        },
+        {
+            "rule_id": "P. 8.2.66_8.3.15",
+            "name": "Sasajuso Ruh & Kharavasanayor Visarjaniyah",
+            "category": "sandhi",
+            "priority": 300,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': token['text'][:-2] + '\u1e25', 'applied_rules': token.get('applied_rules', []) + ['Visarga Sandhi']} if token['text'].endswith('su') else token"
             }
         }
     ]
