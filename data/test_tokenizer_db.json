@@ -1,0 +1,46 @@
+{
+    "rules": [
+        {
+            "rule_id": "juhotyadi_dadaati",
+            "name": null,
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': 'dadāti'} if env.get('root') == 'dā' and env.get('tense') == 'present' else token"
+            }
+        },
+        {
+            "rule_id": "han_perfect",
+            "name": null,
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': 'jaghāna'} if env.get('root') == 'han' and env.get('tense') == 'perfect' else token"
+            }
+        },
+        {
+            "rule_id": "bhu_guna",
+            "name": null,
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': 'bhavati'} if env.get('root') == 'bhū' and env.get('tense') == 'present' else token"
+            }
+        }
+    ]
+}

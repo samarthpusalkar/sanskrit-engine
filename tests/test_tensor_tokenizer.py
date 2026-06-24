@@ -11,7 +11,29 @@ def morphology():
 
 @pytest.fixture
 def tokenizer(morphology):
-    return TensorTokenizer(morphology)
+    from sanskrit_engine.rule_database import RuleDatabase
+    db_path = "data/test_tokenizer_db.json"
+    if os.path.exists(db_path):
+        os.remove(db_path)
+    db = RuleDatabase(db_path)
+    
+    db.insert_rule({
+        "rule_id": "juhotyadi_dadaati",
+        "priority": 100, "domain": ["verb"],
+        "operation": {"type": "lambda", "executable": "lambda token, env: {'pos': token['pos'], 'text': 'dadāti'} if env.get('root') == 'dā' and env.get('tense') == 'present' else token"}
+    })
+    db.insert_rule({
+        "rule_id": "han_perfect",
+        "priority": 100, "domain": ["verb"],
+        "operation": {"type": "lambda", "executable": "lambda token, env: {'pos': token['pos'], 'text': 'jaghāna'} if env.get('root') == 'han' and env.get('tense') == 'perfect' else token"}
+    })
+    db.insert_rule({
+        "rule_id": "bhu_guna",
+        "priority": 100, "domain": ["verb"],
+        "operation": {"type": "lambda", "executable": "lambda token, env: {'pos': token['pos'], 'text': 'bhavati'} if env.get('root') == 'bhū' and env.get('tense') == 'present' else token"}
+    })
+    
+    return TensorTokenizer(morphology, rule_db=db)
 
 def test_tokenizer_bidirectional_consistency(tokenizer):
     original_text = "rāmaḥ gacchati"

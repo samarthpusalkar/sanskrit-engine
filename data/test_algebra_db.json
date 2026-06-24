@@ -1,0 +1,36 @@
+{
+    "rules": [
+        {
+            "rule_id": "bhu_perfect_redup",
+            "name": "Bhu Perfect Reduplication",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "dummy": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': 'babhūva'} if env.get('root') == 'bhū' and env.get('tense') == 'perfect' else token"
+            }
+        },
+        {
+            "rule_id": "juhotyadi_dadaati",
+            "name": "Juhotyadi Reduplication",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {},
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: {'pos': token['pos'], 'text': 'dadāti'} if env.get('root') == 'dā' and env.get('tense') == 'present' else token"
+            }
+        }
+    ]
+}

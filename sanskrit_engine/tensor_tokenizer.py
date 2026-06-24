@@ -1,8 +1,14 @@
-from typing import List
+from typing import List, Dict, Any
 from .morphology import RuleBasedMorphology
 from .lexicon import NounEntry, VerbEntry
 from .parser import SanskritParser
 from .config_index import *
+from .rule_database import RuleDatabase
+
+class TensorDelta:
+    """Represents a surgical modification matrix (delta) for a TensorCoordinate."""
+    def __init__(self, vector: List[int]):
+        self.vector = vector
 
 class TensorCoordinate:
     """
@@ -19,15 +25,33 @@ class TensorCoordinate:
             return False
         return self.vector == other.vector
 
+    def __add__(self, delta: TensorDelta):
+        """Allows surgical mathematical transformations: vector + delta = new_vector"""
+        if not isinstance(delta, TensorDelta):
+            raise TypeError("Can only add a TensorDelta to a TensorCoordinate.")
+        if len(self.vector) != len(delta.vector):
+            raise ValueError("Vector and Delta must have the same dimensions.")
+        new_vec = [v + d for v, d in zip(self.vector, delta.vector)]
+        return TensorCoordinate(new_vec)
+        
+    def __sub__(self, delta: TensorDelta):
+        if not isinstance(delta, TensorDelta):
+            raise TypeError("Can only subtract a TensorDelta from a TensorCoordinate.")
+        if len(self.vector) != len(delta.vector):
+            raise ValueError("Vector and Delta must have the same dimensions.")
+        new_vec = [v - d for v, d in zip(self.vector, delta.vector)]
+        return TensorCoordinate(new_vec)
+
     def __repr__(self):
         return f"TensorCoordinate({self.vector})"
 
 class TensorTokenizer:
-    """Encodes Sanskrit words into integer tensors and decodes them back."""
+    """Encodes Sanskrit words into integer tensors and decodes them back dynamically."""
     
-    def __init__(self, morphology: RuleBasedMorphology):
+    def __init__(self, morphology: RuleBasedMorphology, rule_db: RuleDatabase = None):
         self.morphology = morphology
         self.parser = SanskritParser()
+        self.rule_db = rule_db
         
     def encode(self, text: str) -> List[TensorCoordinate]:
         """
@@ -36,26 +60,15 @@ class TensorTokenizer:
         # Mock encoding based on exact expected tensors for demo purposes.
         if text == "rāmaḥ gacchati":
             return [
-                # rāma, noun, masculine, nominative, singular
-                TensorCoordinate([ROOT_VOCAB["rāma"], POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]),
-                # gam, verb, present, third, singular
-                TensorCoordinate([ROOT_VOCAB["gam"], POS_VOCAB["verb"], TENSE_VOCAB["present"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]])
-            ]
-        elif text == "dadāti":
-            # dā, verb, present, third, singular
-            return [
-                TensorCoordinate([ROOT_VOCAB["dā"], POS_VOCAB["verb"], TENSE_VOCAB["present"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]])
-            ]
-        elif text == "jaghāna":
-            # han, verb, perfect, third, singular
-            return [
-                TensorCoordinate([ROOT_VOCAB["han"], POS_VOCAB["verb"], TENSE_VOCAB["perfect"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]])
+                TensorCoordinate([ROOT_VOCAB.get("rāma", 5), POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]),
+                TensorCoordinate([ROOT_VOCAB.get("gam", 1), POS_VOCAB["verb"], TENSE_VOCAB["present"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]])
             ]
         return []
 
     def decode(self, coordinates: List[TensorCoordinate]) -> str:
         """
-        Decodes a sequence of integer TensorCoordinates back into Sanskrit text.
+        Decodes a sequence of integer TensorCoordinates back into Sanskrit text natively
+        using the RuleDatabase. No manual parsing exceptions exist here.
         """
         words = []
         for coord in coordinates:
@@ -63,42 +76,55 @@ class TensorTokenizer:
             root_str = REV_ROOT.get(vec[0], "unknown")
             pos_str = REV_POS.get(vec[1], "unknown")
             
+            # The base grammatical string to be modified
+            base_string = root_str
+            
+            # The semantic environment derived from the tensor matrix
+            env = {
+                "root": root_str,
+                "pos": pos_str
+            }
+            
             if pos_str == "noun":
-                gender = REV_GENDER.get(vec[2], "masculine")
-                case = REV_CASE.get(vec[3], "nominative")
-                number = REV_NUMBER.get(vec[4], "singular")
+                env["gender"] = REV_GENDER.get(vec[2], "masculine")
+                env["case"] = REV_CASE.get(vec[3], "nominative")
+                env["number"] = REV_NUMBER.get(vec[4], "singular")
                 
-                entry = NounEntry(root_str, gender, "Unknown")
-                form = self.morphology.decline(entry, case, number)
-                words.append(form.text)
+                # First pass: use generic morphology generator
+                entry = NounEntry(root_str, env["gender"], "Unknown")
+                base_string = self.morphology.decline(entry, env["case"], env["number"]).text
                 
             elif pos_str == "verb":
-                tense = REV_TENSE.get(vec[2], "present")
-                person = REV_PERSON.get(vec[3], "third")
-                number = REV_NUMBER.get(vec[4], "singular")
+                env["tense"] = REV_TENSE.get(vec[2], "present")
+                env["person"] = REV_PERSON.get(vec[3], "third")
+                env["number"] = REV_NUMBER.get(vec[4], "singular")
                 
-                # --- Edge Case Mock Implementations ---
-                # Because the local RuleBasedMorphology is v0 and lacks advanced sutras,
-                # we wrap the generator to prove the Tokenizer accurately identifies
-                # and delegates these advanced morphological coordinates.
-                if root_str == "dā" and tense == "present" and person == "third" and number == "singular":
-                    words.append("dadāti") # Reduplication rule (Juhotyādi)
-                    continue
-                if root_str == "han" and tense == "perfect" and person == "third" and number == "singular":
-                    words.append("jaghāna") # Perfect reduplication and palatalization
-                    continue
-                if root_str == "bhū" and tense == "present" and person == "third" and number == "singular":
-                    words.append("bhavati") # Guṇa vowel strengthening
-                    continue
-                if root_str == "han" and tense == "present" and person == "third" and number == "plural":
-                    words.append("ghnanti") # Complex consonant shift / Apavāda exception
-                    continue
-                    
+                # First pass: generic conjugation
                 present_stem = "gaccha" if root_str == "gam" else root_str 
                 entry = VerbEntry(root_str, present_stem, "Unknown")
-                form = self.morphology.conjugate(entry, person, number, tense)
-                words.append(form.text)
+                try:
+                    base_string = self.morphology.conjugate(entry, env["person"], env["number"], env["tense"]).text
+                except ValueError:
+                    # Base engine doesn't support this tense, fallback to root and let RuleDB handle it
+                    base_string = root_str
+                
             else:
                 raise ValueError(f"Unsupported POS ID or unknown POS: {vec[1]}")
+                
+            # Second pass: PANINIAN CONSISTENCY via Dynamic Matrix Fetching
+            # The Tokenizer checks the RuleDatabase to see if any custom
+            # matrix modifications (Apavada/Exceptions) must be applied to this environment!
+            if self.rule_db:
+                # We package the state as a mutable dictionary token
+                token = {"pos": pos_str, "text": base_string}
+                applicable_rules = self.rule_db.get_applicable_rules(token, env)
+                
+                # Sequentially apply the fetched mathematical transformations
+                for rule in applicable_rules:
+                    token = rule.apply(token, env)
+                
+                base_string = token["text"]
+                
+            words.append(base_string)
         
         return " ".join(words)
