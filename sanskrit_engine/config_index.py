@@ -4,6 +4,7 @@ import os
 # Base Vocabulary (Dynamic)
 ROOT_VOCAB = {}
 REV_ROOT = {}
+DHATU_META = {}
 
 POS_VOCAB = {
     "noun": 1,
@@ -55,12 +56,21 @@ def populate_vocabularies(dhatu_filepath: str = None):
     """
     Dynamically loads the massive Dhatupatha (and opaque nouns) into the ROOT_VOCAB.
     """
-    global ROOT_VOCAB, REV_ROOT
+    global ROOT_VOCAB, REV_ROOT, DHATU_META
     
     # Initialize with core test words
     ROOT_VOCAB.update({
         "gam": 1, "han": 2, "dā": 3, "bhū": 4, 
         "rāma": 5, "deva": 6, "avatāra": 7, "kṛ": 8
+    })
+    
+    # Defaults for core test words
+    DHATU_META.update({
+        "gam": {"gana": "1", "pada": "P"},
+        "han": {"gana": "2", "pada": "P"},
+        "dā": {"gana": "3", "pada": "U"},
+        "bhū": {"gana": "1", "pada": "P"},
+        "kṛ": {"gana": "8", "pada": "U"},
     })
     
     # Load from dynamic JSON database if available
@@ -85,6 +95,11 @@ def populate_vocabularies(dhatu_filepath: str = None):
                     if d_name_iast not in ROOT_VOCAB:
                         max_id += 1
                         ROOT_VOCAB[d_name_iast] = max_id
+                    
+                    DHATU_META[d_name_iast] = {
+                        "gana": item.get("gana", "1"),
+                        "pada": item.get("pada", "P")
+                    }
                     
     # Generate Reverse Index by mutating in-place so imported references update
     REV_ROOT.clear()

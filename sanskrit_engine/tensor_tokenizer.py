@@ -99,11 +99,23 @@ class TensorTokenizer:
                 env["person"] = REV_PERSON.get(vec[3], "third")
                 env["number"] = REV_NUMBER.get(vec[4], "singular")
                 
-                # First pass: generic conjugation
-                present_stem = "gaccha" if root_str == "gam" else root_str 
+                # Fetch Dhatu Metadata
+                dhatu_meta = DHATU_META.get(root_str, {"gana": "1", "pada": "P"})
+                env["voice"] = dhatu_meta["pada"]
+                env["gana"] = dhatu_meta["gana"]
+                
+                # First pass: generic conjugation with Vikarana
+                # Gana 1 (Bhvadi) gets 'a' vikarana, Gana 4 (Divadi) gets 'ya'
+                if env["gana"] == "1":
+                    present_stem = root_str + "a"
+                elif env["gana"] == "4":
+                    present_stem = root_str + "ya"
+                else:
+                    present_stem = root_str
+                    
                 entry = VerbEntry(root_str, present_stem, "Unknown")
                 try:
-                    base_string = self.morphology.conjugate(entry, env["person"], env["number"], env["tense"]).text
+                    base_string = self.morphology.conjugate(entry, env["person"], env["number"], env["tense"], env["voice"]).text
                 except ValueError:
                     # Base engine doesn't support this tense, fallback to root and let RuleDB handle it
                     base_string = root_str

@@ -97,8 +97,8 @@ class RuleBasedMorphology:
             rule_ids=tuple(step.rule_id for step in result.trace),
         )
 
-    def conjugate(self, verb: VerbEntry, person: str, number: str, tense: str) -> GeneratedForm:
-        suffix = self._tin_suffix(person, number, tense)
+    def conjugate(self, verb: VerbEntry, person: str, number: str, tense: str, voice: str = "P") -> GeneratedForm:
+        suffix = self._tin_suffix(person, number, tense, voice)
         tokens = [
             Token(
                 verb.present_stem,
@@ -108,14 +108,14 @@ class RuleBasedMorphology:
             Token(
                 suffix,
                 tags={"tin"},
-                features={"person": person, "number": number, "tense": tense},
+                features={"person": person, "number": number, "tense": tense, "voice": voice},
             ),
         ]
         result = self.engine.process(tokens)
         return GeneratedForm(
             text=result.text,
             lemma=verb.root,
-            features={"pos": "verb", "person": person, "number": number, "tense": tense},
+            features={"pos": "verb", "person": person, "number": number, "tense": tense, "voice": voice},
             rule_ids=tuple(step.rule_id for step in result.trace),
         )
 
@@ -142,13 +142,32 @@ class RuleBasedMorphology:
         return supported[(gender, case, number)]
 
     @staticmethod
-    def _tin_suffix(person: str, number: str, tense: str) -> str:
+    def _tin_suffix(person: str, number: str, tense: str, voice: str) -> str:
         if tense != "present":
             raise ValueError(f"Unsupported tense: {tense}")
         supported = {
-            ("third", "singular", "present"): "tip",
-            ("third", "plural", "present"): "jhi",
-            ("first", "singular", "present"): "mip",
-            ("second", "singular", "present"): "sip",
+            # Parasmaipada Suffixes
+            ("third", "singular", "present", "P"): "ti",
+            ("third", "dual", "present", "P"): "taḥ",
+            ("third", "plural", "present", "P"): "nti",
+            ("second", "singular", "present", "P"): "si",
+            ("second", "dual", "present", "P"): "thaḥ",
+            ("second", "plural", "present", "P"): "tha",
+            ("first", "singular", "present", "P"): "mi",
+            ("first", "dual", "present", "P"): "vaḥ",
+            ("first", "plural", "present", "P"): "maḥ",
+            
+            # Atmanepada Suffixes
+            ("third", "singular", "present", "A"): "te",
+            ("third", "dual", "present", "A"): "ite",
+            ("third", "plural", "present", "A"): "nte",
+            ("second", "singular", "present", "A"): "se",
+            ("second", "dual", "present", "A"): "ithe",
+            ("second", "plural", "present", "A"): "dhve",
+            ("first", "singular", "present", "A"): "e",
+            ("first", "dual", "present", "A"): "vahe",
+            ("first", "plural", "present", "A"): "mahe",
         }
-        return supported[(person, number, tense)]
+        # Default to Parasmaipada if Ubhayapada or missing
+        v = "A" if voice == "A" else "P"
+        return supported[(person, number, tense, v)]
