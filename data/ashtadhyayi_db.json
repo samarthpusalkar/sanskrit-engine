@@ -1404,6 +1404,1657 @@
                 "type": "lambda",
                 "executable": "lambda token, env: (token[0][:-1] + 'ar', token[1]) if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and len(token[1]) > 0 and token[1][0] == 'r' else (token[0] + 'ar', token[1]) if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and token[1].startswith('ra') else token"
             }
+        },
+        {
+            "rule_id": "1.1.52",
+            "name": "alo'ntyasya |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "sandhi"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": false,
+                    "ends_with_sampraTAni": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'a', token[1]) if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and env.get('anuvrtti') == 'ṣaṣṭhī' else token"
+            }
+        },
+        {
+            "rule_id": "1.1.53",
+            "name": "ṅicca |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "suffix"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "token_text": "ङित्"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1] + 'ङित्') if isinstance(token, tuple) and len(token) == 2 else ({**token, 'text': token['text'] + 'ङित्'} if isinstance(token, dict) else token)"
+            }
+        },
+        {
+            "rule_id": "1.1.54",
+            "name": "ādeḥ parasya |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "sandhi"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'ḥ', token[1]) if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and token[1] and token[1][0] in ('a', 'ā', 'i', 'ī', 'u', 'ū', 'ṛ', 'ṝ', 'ḷ', 'ḹ') else token"
+            }
+        },
+        {
+            "rule_id": "1.1.55",
+            "name": "anekālśitsarvasya |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun",
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true,
+                    "inheriting_case": "ṣaṣṭhi"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'e', token[1]) if isinstance(token, tuple) else (token.update({'text': token['text'][:-1] + 'e'}) or token) if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.56",
+            "name": "sthānivadādeśo'nalvidhau |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "subanta",
+                "taddhita"
+            ],
+            "conditions": {
+                "target": {
+                    "is_pratyaya": true
+                },
+                "right_context": {
+                    "is_inalvaidheya": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'e', token[1]) if isinstance(token, tuple) else (token.update({'text': token['text'] + 'e'}) or token) if isinstance(token, dict) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.57",
+            "name": "acaḥ parasmin pūrvavidhau |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_vowel": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'a', token[1]) if isinstance(token, tuple) and len(token[0]) > 0 and token[0][-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and (len(env.get('right_context', '')) > 0 and env['right_context'][0] in ['a', 'i', 'u', 'ṛ', 'ḷ', 'ā', 'ī', 'ū', 'ṝ', 'ḷ', 'e', 'ai', 'o', 'au']) else (token[0], token[1]) if isinstance(token, tuple) else ({'text': token['text'][:-1] + 'a', 'pos': token['pos']} if len(token['text']) > 0 and token['text'][-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and (len(env.get('right_context', '')) > 0 and env['right_context'][0] in ['a', 'i', 'u', 'ṛ', 'ḷ', 'ā', 'ī', 'ū', 'ṝ', 'ḷ', 'e', 'ai', 'o', 'au']) else token) if isinstance(token, dict) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.58",
+            "name": "na padāntadvirvacanavareyalopasvarasavarṇānusvāradīrghajaścarvidhiṣu |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "sandhi"
+            ],
+            "conditions": {
+                "target": {
+                    "is_tuple": true,
+                    "type_check": "isinstance(token, tuple)",
+                    "left_member": "token[0]",
+                    "right_member": "token[1]"
+                },
+                "right_context": {
+                    "starts_with_guna": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ"
+                    ],
+                    "starts_with_vrddhi": [
+                        "ā",
+                        "ī",
+                        "ū",
+                        "ṝ"
+                    ],
+                    "starts_with_anusvAra": true,
+                    "starts_with_long_svara": true,
+                    "starts_with_jashchar": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1]) if isinstance(token, tuple) and (not (len(token[0])>0 and token[0][-1] in ['a','i','u','ṛ','ḷ','ā','ī','ū','ṝ','ṃ','ṅ','ñ','ṇ','ṇ','ṣ','ś','ṣ'] and len(token[1])>0 and token[1][0] in ['a','ā','i','ī','u','ū','ṛ','ṝ','ḷ','e','o','ai','au','ḥ','ṃ'] and any([token[1][0] == 'a' or token[1][0] == 'ā', token[1][0] == 'i' or token[1][0] == 'ī', token[1][0] == 'u' or token[1][0] == 'ū', token[1][0] == 'ṛ' or token[1][0] == 'ṝ', token[1].startswith('an'), token[1][0] == 'j' or token[1][0] == 'ś' or token[1][0] == 'ṣ', token[1][0] == 'c' or token[1][0] == 'j', token[1][0] == 'h']))) else (token[0], token[1]) if isinstance(token, tuple) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.59",
+            "name": "dvirvacane'ci |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'a', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'a'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token) if env.get('right_context', {}).get('starts_with_savarna', False) and isinstance(token, (tuple, dict)) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.60",
+            "name": "adarśanaṃ lopaḥ |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "noun",
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": false
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'a' if token[0].endswith(('a', 'ā')) else token[0][:-1] if token[0].endswith(('i', 'ī')) else token[0][:-1] if token[0].endswith(('u', 'ū')) else token[0][:-1] if token[0].endswith(('ṛ', 'ṝ')) else token[0][:-1] if token[0].endswith(('ḷ', 'ḹ')) else token[0], token[1]) if isinstance(token, tuple) else (token | {'text': token['text'][:-1] + 'a' if token['text'].endswith(('a', 'ā')) else token['text'][:-1] if token['text'].endswith(('i', 'ī')) else token['text'][:-1] if token['text'].endswith(('u', 'ū')) else token['text'][:-1] if token['text'].endswith(('ṛ', 'ṝ')) else token['text'][:-1] if token['text'].endswith(('ḷ', 'ḹ')) else token['text']}) if isinstance(token, dict) and token['text'].endswith(('a', 'ā', 'i', 'ī', 'u', 'ū', 'ṛ', 'ṝ', 'ḷ', 'ḹ')) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.61",
+            "name": "pratyayasya lukślulupaḥ |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "pratyaya"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "is_ellipsis": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token[:-1] if isinstance(token, tuple) and len(token) > 0 and token[-1] in ('a', 'i', 'u', 'ṛ', 'ḷ') else token if isinstance(token, dict) and token.get('text', '')[-1] in ('a', 'i', 'u', 'ṛ', 'ḷ') else token if isinstance(token, tuple) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.62",
+            "name": "pratyayalope pratyayalakṣaṇam |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "sutra",
+                "grammar"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with": "lopa"
+                },
+                "right_context": {
+                    "starts_with": "lakshana"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1][:-1] + 'e') if isinstance(token, tuple) else (token if isinstance(token, dict) else token)"
+            }
+        },
+        {
+            "rule_id": "1.1.63",
+            "name": "na lumatā'ṅgasya |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": false,
+                    "literal_match": "aṅgasya"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1][:-1] + 'm' if isinstance(token, tuple) and len(token[1]) > 0 and token[1].endswith('a') else token) if isinstance(token, tuple) else ({**token, 'text': token['text'][:-1] + 'm'} if isinstance(token, dict) and token.get('text', '').endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token)"
+            }
+        },
+        {
+            "rule_id": "1.1.64",
+            "name": "aco'ntyādi ṭi |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], 'i' + token[1][1:]) if isinstance(token, tuple) and len(token[0]) > 0 and token[0][-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and len(token) > 1 and len(token[1]) > 0 and token[1][0] in ['a', 'ā', 'i', 'ī', 'u', 'ū', 'ṛ', 'ṝ', 'ḷ', 'e', 'ai', 'o', 'au'] else token"
+            }
+        },
+        {
+            "rule_id": "1.1.65",
+            "name": "alo'ntyāt pūrva upadhā |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'ā', token[1]) if isinstance(token, tuple) and len(token[0]) > 0 and token[0][-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and env.get('right_context') and env['right_context'][0] in ['a', 'ā', 'i', 'ī', 'u', 'ū', 'ṛ', 'ṝ', 'ḷ', 'ē', 'ai', 'ō', 'au', 'aḥ', 'aṭ', 'aṇ'] else (token[0] + 'upadhā' if isinstance(token, tuple) and len(token) == 2 else (token if isinstance(token, dict) else token))"
+            }
+        },
+        {
+            "rule_id": "1.1.66",
+            "name": "tasminniti nirdiṣṭe pūrvasya |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "noun",
+                "pada"
+            ],
+            "conditions": {
+                "target": {
+                    "text": "tasmint"
+                },
+                "right_context": {
+                    "starts_with_vowel": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'n', token[1]) if isinstance(token, tuple) and token[0].endswith('t') else token"
+            }
+        },
+        {
+            "rule_id": "1.1.67",
+            "name": "tasmādityuttarasya |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "inherited": "nirdeṣṭe"
+                },
+                "right_context": {
+                    "word": "uttarasya"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'i', token[1]) if isinstance(token, tuple) and token[0].endswith('a') else (token['text'] + 'i', {**token, 'text': token['text'] + 'i'}) if isinstance(token, dict) and token['text'].endswith('a') else token"
+            }
+        },
+        {
+            "rule_id": "1.1.68",
+            "name": "svaṃ rūpaṃ śabdasyāśabdasaṃjñā |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1] + 'a' if isinstance(token, tuple) else {**token, 'text': token['text'] + 'a'} if isinstance(token, dict) else token) if (isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ'))) or (isinstance(token, dict) and token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ'))) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.69",
+            "name": "aṇudit savarṇasya cāpratyayaḥ |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1]) if isinstance(token, tuple) else (token | {'text': token['text'][:-1] + 'ḥ'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and env.get('right_context', {}).get('starts_with_savarna') else token)"
+            }
+        },
+        {
+            "rule_id": "1.1.70",
+            "name": "taparastatkālasya |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + env['savarna_long'], token[1]) if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and env.get('right_context', {}).get('starts_with_savarna', False) else (token[0] + env.get('savarna_long', ''), token[1]) if isinstance(token, tuple) and not token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and env.get('right_context', {}).get('starts_with_savarna', False) else token if isinstance(token, tuple) else (token | {'text': token['text'][:-1] + env['savarna_long']}) if isinstance(token, dict) and token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and env.get('right_context', {}).get('starts_with_savarna', False) else (token | {'text': token['text'] + env.get('savarna_long', '')}) if isinstance(token, dict) and not token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and env.get('right_context', {}).get('starts_with_savarna', False) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.71",
+            "name": "ādirantyena sahetā |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "is_from_padaccheda": "आदिः",
+                    "ends_with_vowel": [
+                        "i"
+                    ]
+                },
+                "right_context": {
+                    "is_from_padaccheda": "अन्त्येन",
+                    "inherited_from_anuvrtti": [
+                        "स्वम्",
+                        "रूपम्"
+                    ],
+                    "must_sahita_with": "इता"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'ँ', token[1]) if isinstance(token, tuple) and token[0].endswith('ि') and env.get('right_context', {}).get('is_from_padaccheda') == 'अन्त्येन' and 'इता' in env.get('right_context', {}).get('must_sahita_with', '') else (token, None)[0] if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'ँ'} if isinstance(token, dict) and token['text'].endswith('ि') and env.get('right_context', {}).get('is_from_padaccheda') == 'अन्त्येन' and 'इता' in env.get('right_context', {}).get('must_sahita_with', '') else token)"
+            }
+        },
+        {
+            "rule_id": "1.1.72",
+            "name": "yena vidhistadantasya |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "is_inherited": true,
+                    "inherited_form": "svam rūpam"
+                },
+                "right_context": {
+                    "pattern": "any word ending in a vowel",
+                    "follows_vowel_ending_word": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'a', token[1]) if isinstance(token, tuple) and token[0].endswith(('a', 'ā', 'i', 'ī', 'u', 'ū', 'ṛ', 'ṝ', 'ḷ', 'e', 'ai', 'o', 'au', 'āy', 'āv')) else (token[0], token[1]) if isinstance(token, tuple) else (token if isinstance(token, dict) else token)"
+            }
+        },
+        {
+            "rule_id": "1.1.73",
+            "name": "vṛddhiryasyācāmādistad vṛddham |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'ā', token[1]) if isinstance(token, tuple) else ({'text': token['text'][:-1] + 'ā' + token['text'][-1:] if token['text'] and token['text'][-1] in 'aiuṛḷ' else token['text'], **{k:v for k,v in token.items() if k != 'text'}} if isinstance(token, dict) else token)"
+            }
+        },
+        {
+            "rule_id": "1.1.74",
+            "name": "tyadādīni ca |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "pratipadika"
+            ],
+            "conditions": {
+                "target": {
+                    "anuvrtti": "vridDam"
+                },
+                "right_context": {
+                    "starts_with_pratipadika": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'A' if isinstance(token, tuple) else {**token, 'text': token['text'] + 'A'}) if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else (token if isinstance(token, tuple) else token) if isinstance(token, dict) and env.get('anuvrtti') == 'vridDam' else (token if isinstance(token, tuple) else token) if isinstance(token, dict) else token"
+            }
+        },
+        {
+            "rule_id": "1.1.75",
+            "name": "eṅ prācāṃ deśe |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: ('e', token[1]) if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and token[1].startswith(('a', 'ā', 'i', 'ī', 'u', 'ū', 'ṛ', 'ṝ', 'ḷ', 'ai', 'au', 'o', 'e')) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.1",
+            "name": "gāṅkuṭādibhyo'ñṇinṅ it |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'a', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'][:-1] + 'a'} if isinstance(token, dict) else token)"
+            }
+        },
+        {
+            "rule_id": "1.2.2",
+            "name": "vija iṭ |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "text_equals": "iṭ"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'i', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'i'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token)"
+            }
+        },
+        {
+            "rule_id": "1.2.3",
+            "name": "vibhāṣorṇoḥ |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'ṇ', token[1]) if isinstance(token, tuple) else (lambda t: (t.update({'text': t['text'][:-1] + 'ṇ'}) or t) if t['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else t)(token) if isinstance(token, dict) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.4",
+            "name": "sārvadhātukamapit |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "text_equals": "apit"
+                },
+                "inherited_condition": {
+                    "text_equals": "ṅit"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1][:-1]) if isinstance(token, tuple) and token[1].endswith('t') else (token if isinstance(token, dict) and token.get('text', '').endswith('t') else (lambda d: {**d, 'text': d['text'][:-1] if d['text'].endswith('t') else d['text']})(token) if isinstance(token, dict) else token)"
+            }
+        },
+        {
+            "rule_id": "1.2.5",
+            "name": "asaṃyogālliṭ kit |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": false,
+                    "is_consonant_cluster": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'i' if isinstance(token, tuple) else (token.update({'text': token['text'][:-1] + 'i'}) or token)) if isinstance(token, tuple) else (token if not token['text'].endswith(tuple(['a', 'i', 'u', 'ṛ', 'ḷ'])) else (token.update({'text': token['text'][:-1] + 'i'}) or token)) if env.get('anuvrtti') == 'apit' else token"
+            }
+        },
+        {
+            "rule_id": "1.2.6",
+            "name": "indhibhavatibhyāṃ ca |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'ḥ', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'ḥ'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token)"
+            }
+        },
+        {
+            "rule_id": "1.2.7",
+            "name": "mṛḍamṛdagudhakuṣakliśavadavasaḥ ktvā |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'a', token[1] + 'a') if isinstance(token, tuple) else (token.update({'text': token['text'] + 'a'}) or token) if isinstance(token, dict) and token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and env.get('right_context_text', '') and env['right_context_text'][0] in ('a', 'ā', 'i', 'ī', 'u', 'ū', 'ṛ', 'ṝ', 'ḷ', 'ḹ') else token"
+            }
+        },
+        {
+            "rule_id": "1.2.8",
+            "name": "rudavidamuṣagrahisvapipracchaḥ sa~śca |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "is_in_list": [
+                        "rud",
+                        "vid",
+                        "am",
+                        "muṣ",
+                        "grah",
+                        "svap",
+                        "pracch"
+                    ]
+                },
+                "right_context": {
+                    "is_in_list": [
+                        "san",
+                        "ca"
+                    ]
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 's', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 's'} if token['text'] in ('rud', 'vid', 'am', 'muṣ', 'grah', 'svap', 'pracch') else token) if (isinstance(token, tuple) and token[0] in ('rud', 'vid', 'am', 'muṣ', 'grah', 'svap', 'pracch') and 'san' in env.get('next_word', '') or isinstance(token, dict) and token['text'] in ('rud', 'vid', 'am', 'muṣ', 'grah', 'svap', 'pracch') and 'san' in env.get('next_word', '')) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.9",
+            "name": "iko jhal |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "sandhi"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'ś', token[1]) if isinstance(token, tuple) and (token[0][-1] in ['a', 'i', 'u', 'ṛ', 'ḷ']) and (len(token) > 1 and token[1] and token[1][0] in ['ś', 'ṣ', 's']) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.10",
+            "name": "halantācca |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'ḥ', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'][:-1] + 'ḥ'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token) if isinstance(token, tuple) or isinstance(token, dict) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.11",
+            "name": "liṅsicāvātmanepadeṣu |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "in_anuvrtti": [
+                        "kit",
+                        "ikaH",
+                        "jhal",
+                        "halantAt"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": false
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token if isinstance(token, tuple) else ({**token, 'text': token['text'][:-1] + 'a'} if isinstance(token, dict) and token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token) if (env.get('in_anuvrtti', []) and any(x in env['in_anuvrtti'] for x in ['kit', 'ikaH', 'jhal', 'halantAt'])) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.12",
+            "name": "uśca |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_ushna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'ḥ', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'ḥ'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token)"
+            }
+        },
+        {
+            "rule_id": "1.2.13",
+            "name": "vā gamaḥ |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'Am', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'Am'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token)"
+            }
+        },
+        {
+            "rule_id": "1.2.14",
+            "name": "hanaḥ sic |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "text_equals": "han"
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token if not (isinstance(token, dict) and token.get('text', '') == 'han') else {**token, 'text': token['text'] + 'i'} if (env.get('right_context', {}).get('text', '') and env['right_context']['text'][0] in ['a', 'i', 'u', 'ṛ', 'ḷ']) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.15",
+            "name": "yamo gandhane |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "text_equals": "यमः"
+                },
+                "right_context": {
+                    "starts_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token[:-1] + 'ः' if isinstance(token, str) and token == 'यमः' and env.get('right_word') and env['right_word'][0] in ['a', 'i', 'u', 'ṛ', 'ḷ'] else token"
+            }
+        },
+        {
+            "rule_id": "1.2.16",
+            "name": "vibhāṣopayamane |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'a', token[1]) if isinstance(token, tuple) else (token.update({'text': token['text'] + 'a'}) or token) if isinstance(token, dict) and token.get('text', '')[-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] else token"
+            }
+        },
+        {
+            "rule_id": "1.2.17",
+            "name": "sthā ghvoricca |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "is_verb_root": true,
+                    "text_equals": "sthā"
+                },
+                "right_context": {
+                    "starts_with_it": true,
+                    "followed_by_kit_or_ātmanepada_sic": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: ('sthā', 'ghv') if isinstance(token, tuple) else ({'text': 'sthā', 'pos': 'verb'} if token['text'] == 'sthā' and token.get('pos') == 'verb' else token) if env.get('right_context', {}).get('starts_with_it') and (env.get('anuvrtti', {}).get('kit') or env.get('anuvrtti', {}).get('ātmanepada_sic')) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.18",
+            "name": "na ktvā seṭ |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'e' if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and (env['right_context'][0] if isinstance(env.get('right_context'), tuple) else env.get('right_context', ('', '')))[0].startswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token, token[1] + 's' if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and (env['right_context'][0] if isinstance(env.get('right_context'), tuple) else env.get('right_context', ('', '')))[0].startswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token[1],) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 's'} if isinstance(token, dict) and token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and (env['right_context'][0] if isinstance(env.get('right_context'), tuple) else env.get('right_context', ('', '')))[0].startswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token) if env.get('anuvrtti') == 'kit' else token"
+            }
+        },
+        {
+            "rule_id": "1.2.19",
+            "name": "niṣṭhā śīṅsvidimidikṣvididhṛṣaḥ |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "R",
+                        "L"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": false,
+                    "text": "niSThA"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1][:-1] + 'A') if (isinstance(token, tuple) and len(token) == 2 and isinstance(token[0], str) and isinstance(token[1], str) and token[1].endswith(('a', 'i', 'u', 'R', 'L'))) else (token[0], token[1]) if (isinstance(token, tuple) and len(token) == 2) else ({**token, 'root': token['root'][:-1] + 'A'} if (isinstance(token, dict) and 'root' in token and token['root'].endswith(('a', 'i', 'u', 'R', 'L'))) else token)"
+            }
+        },
+        {
+            "rule_id": "1.2.20",
+            "name": "mṛṣastitikṣāyām |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "text": "mFzaH",
+                    "ends_with": "a"
+                },
+                "right_context": {
+                    "text": "TitikzAyAm",
+                    "starts_with_vowel": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'H', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'H'} if token['text'].endswith('a') else token) if (isinstance(token, tuple) and token[0].endswith('a')) or (isinstance(token, dict) and token.get('text', '').endswith('a')) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.21",
+            "name": "udupadhādbhāvādikarmaṇoranyatarasyām |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'am', token[1]) if isinstance(token, tuple) and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and env.get('right_context', {}).get('starts_with_savarna', False) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.22",
+            "name": "pūṅaḥ ktvā ca |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "text_in_list": [
+                        "pUNgH"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_kttva": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1].replace('ktva', 'ta', 1)) if isinstance(token, tuple) and token[1].startswith('ktva') else (token[0], 'ta' + token[1][4:]) if isinstance(token, tuple) and token[1].startswith('ktva') else ({**token, 'text': token['text'].replace('ktva', 'ta', 1)} if isinstance(token, dict) and 'text' in token and token['text'].startswith('ktva') else ({**token, 'text': 'ta' + token['text'][4:]} if isinstance(token, dict) and 'text' in token and token['text'].startswith('ktva') else token))"
+            }
+        },
+        {
+            "rule_id": "1.2.23",
+            "name": "nopadhātthaphāntādvā |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], token[1][:-1]) if isinstance(token, tuple) and len(token) == 2 and token[1] and token[1][-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and (len(token[0]) > 0 and token[0][0] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and token[0][0] == token[1][-1]) else (token[0], token[1]) if isinstance(token, tuple) and len(token) == 2 else ({**token, 'text': token['text'][:-1]} if isinstance(token, dict) and token.get('text') and token['text'][-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and len(env.get('right_context', '')) > 0 and env['right_context'][0] in ['a', 'i', 'u', 'ṛ', 'ḷ'] and env['right_context'][0] == token['text'][-1] else token) if isinstance(token, dict) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.24",
+            "name": "vañciluñcyṛtaśca |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'e', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'e'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token)"
+            }
+        },
+        {
+            "rule_id": "1.2.25",
+            "name": "tṛṣimṛṣikṛśeḥ kāśyapasya |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "exact_match": "kASyapasya"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] if isinstance(token, tuple) else token['text'], token[1] if isinstance(token, tuple) else token['pos']) if isinstance(token, tuple) else token if not ( (token['text'].endswith(('a','i','u','ṛ','ḷ')) if isinstance(token, dict) else token[0].endswith(('a','i','u','ṛ','ḷ')) ) and env.get('right_context') == 'kASyapasya' ) else (token[0][:-1] + 'a', token[1]) if isinstance(token, tuple) else {**token, 'text': token['text'][:-1] + 'a'} if token['text'].endswith(('a','i','u','ṛ','ḷ')) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.26",
+            "name": "ralo vyupadhāddhalādeḥ saṃśca |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "sandhi",
+                "suffixation"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_consonant": true
+                },
+                "left_context": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_consonant": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0].rstrip('aAiIuUfFxXyYzZSsqQdDnNkKgGhCcjjJvVbBpPtTdDmMnNlLrRsShHkKgGhCcjjJvVbBpPtTdDmMnNlLrRsShH') + 'l', token[1]) if isinstance(token, tuple) else (token['text'][:-1] + 'l') if isinstance(token, dict) and token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.27",
+            "name": "ūkālo'jjhrasvadīrghaplutaḥ |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "svara",
+                "akṣara"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'ā', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'][:-1] + 'ā'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token) if (isinstance(token, tuple) or isinstance(token, dict)) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.28",
+            "name": "acaśca |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "vowel"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token if not (isinstance(token, tuple) and len(token) == 2) else (token[0][:-1] + 'ā', token[1]) if isinstance(token, tuple) else token if isinstance(token, dict) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.29",
+            "name": "uccairudāttaḥ |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "sound",
+                "phonetic"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'ḥ', token[1]) if isinstance(token, tuple) and len(token) == 2 and token[0].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) and env.get('right_context', {}).get('starts_with_savarna', False) else (token if isinstance(token, tuple) else token)"
+            }
+        },
+        {
+            "rule_id": "1.2.30",
+            "name": "nīcairanudāttaḥ |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "is_anudātta": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'ḥ', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'ḥ'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'ḥ'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token)"
+            }
+        },
+        {
+            "rule_id": "1.2.31",
+            "name": "samāhāraḥ svaritaḥ |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_savarna": true,
+                    "inherit_from": "ach"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'svarita' if isinstance(token, tuple) else (token.update({'svarita': 'applied'}) or token) if isinstance(token, dict) else token) if isinstance(token, (tuple, dict)) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.32",
+            "name": "tasyādita udāttamardhahrasvam |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "vowel"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "matches": "udāttam"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0][:-1] + 'ā', token[1]) if isinstance(token, tuple) and token[0].endswith('a') else (token[0][:-1] + 'ī', token[1]) if isinstance(token, tuple) and token[0].endswith('i') else (token[0][:-1] + 'ū', token[1]) if isinstance(token, tuple) and token[0].endswith('u') else (token[0][:-1] + 'ṝ', token[1]) if isinstance(token, tuple) and token[0].endswith('ṛ') else (token[0][:-1] + 'ḹ', token[1]) if isinstance(token, tuple) and token[0].endswith('ḷ') else token if isinstance(token, tuple) else (token['text'][:-1] + 'ā') if isinstance(token, dict) and token['text'].endswith('a') else (token['text'][:-1] + 'ī') if isinstance(token, dict) and token['text'].endswith('i') else (token['text'][:-1] + 'ū') if isinstance(token, dict) and token['text'].endswith('u') else (token['text'][:-1] + 'ṝ') if isinstance(token, dict) and token['text'].endswith('ṛ') else (token['text'][:-1] + 'ḹ') if isinstance(token, dict) and token['text'].endswith('ḷ') else token"
+            }
+        },
+        {
+            "rule_id": "1.2.33",
+            "name": "ekaśruti dūrāt sambuddhau |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "token_type": "dict",
+                    "pos": "noun",
+                    "ends_with": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "token_type": "tuple",
+                    "condition": "lambda t: isinstance(t, tuple) and len(t) == 2 and t[0].endswith('s') and t[1].startswith('b')"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token if isinstance(token, tuple) else (lambda t: t if not isinstance(t, dict) or t.get('text', '')[-1] not in ['a', 'i', 'u', 'ṛ', 'ḷ'] or env.get('right', {}).get('text', '')[:1] != 'b' else {**t, 'text': t['text'][:-1] + 'au'})(token)"
+            }
+        },
+        {
+            "rule_id": "1.2.34",
+            "name": "yajñakarmaṇyajapanyūṅkhasāmasu |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "text": "yajña-karmaṇi",
+                    "ends_with_vowel": [
+                        "a"
+                    ]
+                },
+                "right_context": {
+                    "text": "ajapanyuṅkhasāmasu",
+                    "starts_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0], 'ajap' + token[1][3:]) if isinstance(token, tuple) else (token.update({'text': token['text'][:6] + 'ajap' + token['text'][9:]}) or token) if isinstance(token, dict) and token.get('text', '') == 'yajñakarmaṇi' else token"
+            }
+        },
+        {
+            "rule_id": "1.2.35",
+            "name": "uccaistarāṃ vā vaṣaṭkāraḥ |",
+            "category": "vidhi",
+            "priority": 100,
+            "domain": [
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "in_anuvrtti": "ekashruti yajnakarmani"
+                },
+                "right_context": {
+                    "token_type": "dict",
+                    "pos_equals": "noun"
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: ({\"text\": token[\"text\"].rstrip('a') + 'ā', \"pos\": token[\"pos\"]} if isinstance(token, dict) and token.get('pos') == 'noun' and token['text'].endswith('a') else token) if 'ekashruti yajnakarmani' in env.get('anuvrtti', []) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.36",
+            "name": "vibhāṣā chandasi |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "a",
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_vowel": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: (token[0] + 'a', token[1]) if isinstance(token, tuple) else ({**token, 'text': token['text'] + 'a'} if token['text'].endswith(('a', 'i', 'u', 'ṛ', 'ḷ')) else token) if isinstance(token, dict) else token"
+            }
+        },
+        {
+            "rule_id": "1.2.37",
+            "name": "na subrahmaṇyāyāṃ svaritasya tūdāttaḥ |",
+            "category": "apavada",
+            "priority": 100,
+            "domain": [
+                "svarita",
+                "udātta"
+            ],
+            "conditions": {
+                "target": {
+                    "text": "subrahmaṇyāyām",
+                    "sandhi_environment": "after svarita"
+                },
+                "right_context": {
+                    "starts_with_svarita": true
+                }
+            },
+            "operation": {
+                "type": "lambda",
+                "executable": "lambda token, env: token if not (isinstance(token, dict) and token.get('text') == 'subrahmaṇyāyām' and env.get('prev_svarita')) else ({**token, 'intonation': 'udātta'} if isinstance(token, dict) else token)"
+            }
         }
     ]
 }
