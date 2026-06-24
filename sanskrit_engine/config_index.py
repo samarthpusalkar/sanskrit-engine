@@ -52,6 +52,15 @@ GENDER_VOCAB = {
     "neuter": 3
 }
 
+# --- Upasargas (Prefixes) ---
+UPASARGA_VOCAB = {
+    "none": 0, "pra": 1, "parā": 2, "apa": 3, "sam": 4, 
+    "anu": 5, "ava": 6, "nis": 7, "nir": 8, "dus": 9, 
+    "dur": 10, "vi": 11, "ā": 12, "ni": 13, "adhi": 14, 
+    "api": 15, "ati": 16, "su": 17, "ud": 18, "abhi": 19, 
+    "prati": 20, "pari": 21, "upa": 22
+}
+
 def populate_vocabularies(dhatu_filepath: str = None):
     """
     Dynamically loads the massive Dhatupatha (and opaque nouns) into the ROOT_VOCAB.
@@ -66,11 +75,11 @@ def populate_vocabularies(dhatu_filepath: str = None):
     
     # Defaults for core test words
     DHATU_META.update({
-        "gam": {"gana": "1", "pada": "P"},
-        "han": {"gana": "2", "pada": "P"},
-        "dā": {"gana": "3", "pada": "U"},
-        "bhū": {"gana": "1", "pada": "P"},
-        "kṛ": {"gana": "8", "pada": "U"},
+        "gam": {"gana": "1", "pada": "P", "settva": "S"},
+        "han": {"gana": "2", "pada": "P", "settva": "A"},
+        "dā": {"gana": "3", "pada": "U", "settva": "A"},
+        "bhū": {"gana": "1", "pada": "P", "settva": "S"},
+        "kṛ": {"gana": "8", "pada": "U", "settva": "A"},
     })
     
     # Load from dynamic JSON database if available
@@ -89,16 +98,31 @@ def populate_vocabularies(dhatu_filepath: str = None):
             
             for item in dhatu_list:
                 d_name_devanagari = item.get("dhatu")
+                aupadeshik_dev = item.get("aupadeshik", "")
+                
                 if d_name_devanagari:
                     # Translate traditional Devanagari to phonetic IAST so tensor maths works
                     d_name_iast = sanscript.transliterate(d_name_devanagari, sanscript.DEVANAGARI, sanscript.IAST)
+                    aupadeshik_iast = sanscript.transliterate(aupadeshik_dev, sanscript.DEVANAGARI, sanscript.IAST) if aupadeshik_dev else d_name_iast
+                    
                     if d_name_iast not in ROOT_VOCAB:
                         max_id += 1
                         ROOT_VOCAB[d_name_iast] = max_id
                     
+                    # True Paninian Anubandha Stripping
+                    # ñit (ñ) -> Ubhayapada
+                    # ṅit (ṅ) -> Atmanepada
+                    if aupadeshik_iast.endswith("ñ"):
+                        calc_pada = "U"
+                    elif aupadeshik_iast.endswith("ṅ"):
+                        calc_pada = "A"
+                    else:
+                        calc_pada = item.get("pada", "P") # Fallback
+                        
                     DHATU_META[d_name_iast] = {
                         "gana": item.get("gana", "1"),
-                        "pada": item.get("pada", "P")
+                        "pada": calc_pada,
+                        "settva": item.get("settva", "S") # 'S' = seṭ, 'A' = aniṭ
                     }
                     
     # Generate Reverse Index by mutating in-place so imported references update
@@ -115,3 +139,4 @@ REV_PERSON = {v: k for k, v in PERSON_VOCAB.items()}
 REV_NUMBER = {v: k for k, v in NUMBER_VOCAB.items()}
 REV_CASE = {v: k for k, v in CASE_VOCAB.items()}
 REV_GENDER = {v: k for k, v in GENDER_VOCAB.items()}
+REV_UPASARGA = {v: k for k, v in UPASARGA_VOCAB.items()}

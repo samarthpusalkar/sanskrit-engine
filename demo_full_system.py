@@ -80,20 +80,22 @@ def demo_algebra(tokenizer):
         input("\nPress Enter to return to menu...")
         return
         
-    root_idx = ROOT_VOCAB[user_root]
+    root_id = ROOT_VOCAB.get(user_root)
     print(f"\nConstructing Present Tense Base Vector for '{user_root}'...")
-    base = TensorCoordinate([root_idx, 2, 1, 1, 1])
+    # 6D Base Vector: [upasarga(0), root, pos(verb=2), tense(pres=1), person(3rd=1), num(sing=1)]
+    base = TensorCoordinate([0, root_id, 2, 1, 1, 1])
     print(f"[Base Vector]:  {base.vector} -> Decodes to: {tokenizer.decode([base])}")
     
     print("\nEnter a surgical TensorDelta to apply.")
-    print("Example: '0 0 1 0 0' adds +1 to Tense (Present(1) -> Perfect(2))")
-    print("Example: '0 0 0 0 2' adds +2 to Number (Singular(1) -> Plural(3))")
+    print("Example: '0 0 0 1 0 0' adds +1 to Tense (Present(1) -> Perfect(2))")
+    print("Example: '1 0 0 0 0 0' adds +1 to Upasarga (None(0) -> pra(1))")
+    print("Example: '0 0 0 0 0 2' adds +2 to Number (Singular(1) -> Plural(3))")
     
-    delta_input = input("Enter 5 integers separated by space: ")
+    delta_input = input("Enter 6 integers separated by space: ").strip()
     try:
         delta_vals = [int(x) for x in delta_input.split()]
-        if len(delta_vals) != 5:
-            raise ValueError
+        if len(delta_vals) != 6:
+            raise ValueError("Must provide exactly 6 integers.")
         delta = TensorDelta(delta_vals)
     except ValueError:
         print("Invalid delta format.")

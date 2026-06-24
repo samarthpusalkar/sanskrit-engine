@@ -97,8 +97,8 @@ class RuleBasedMorphology:
             rule_ids=tuple(step.rule_id for step in result.trace),
         )
 
-    def conjugate(self, verb: VerbEntry, person: str, number: str, tense: str, voice: str = "P") -> GeneratedForm:
-        suffix = self._tin_suffix(person, number, tense, voice)
+    def conjugate(self, verb: VerbEntry, person: str, number: str, tense: str, voice: str = "P", settva: str = "S") -> GeneratedForm:
+        suffix = self._tin_suffix(person, number, tense, voice, settva)
         tokens = [
             Token(
                 verb.present_stem,
@@ -142,11 +142,12 @@ class RuleBasedMorphology:
         return supported[(gender, case, number)]
 
     @staticmethod
-    def _tin_suffix(person: str, number: str, tense: str, voice: str) -> str:
-        if tense != "present":
+    def _tin_suffix(person: str, number: str, tense: str, voice: str, settva: str) -> str:
+        if tense not in ["present", "future"]:
             raise ValueError(f"Unsupported tense: {tense}")
+            
         supported = {
-            # Parasmaipada Suffixes
+            # Parasmaipada Present
             ("third", "singular", "present", "P"): "ti",
             ("third", "dual", "present", "P"): "taḥ",
             ("third", "plural", "present", "P"): "nti",
@@ -157,7 +158,7 @@ class RuleBasedMorphology:
             ("first", "dual", "present", "P"): "vaḥ",
             ("first", "plural", "present", "P"): "maḥ",
             
-            # Atmanepada Suffixes
+            # Atmanepada Present
             ("third", "singular", "present", "A"): "te",
             ("third", "dual", "present", "A"): "ite",
             ("third", "plural", "present", "A"): "nte",
@@ -167,7 +168,35 @@ class RuleBasedMorphology:
             ("first", "singular", "present", "A"): "e",
             ("first", "dual", "present", "A"): "vahe",
             ("first", "plural", "present", "A"): "mahe",
+            
+            # Parasmaipada Future
+            ("third", "singular", "future", "P"): "syati",
+            ("third", "dual", "future", "P"): "syataḥ",
+            ("third", "plural", "future", "P"): "syanti",
+            ("second", "singular", "future", "P"): "syasi",
+            ("second", "dual", "future", "P"): "syathaḥ",
+            ("second", "plural", "future", "P"): "syatha",
+            ("first", "singular", "future", "P"): "syāmi",
+            ("first", "dual", "future", "P"): "syāvaḥ",
+            ("first", "plural", "future", "P"): "syāmaḥ",
+            
+            # Atmanepada Future
+            ("third", "singular", "future", "A"): "syate",
+            ("third", "dual", "future", "A"): "syete",
+            ("third", "plural", "future", "A"): "syante",
+            ("second", "singular", "future", "A"): "syase",
+            ("second", "dual", "future", "A"): "syethe",
+            ("second", "plural", "future", "A"): "syadhve",
+            ("first", "singular", "future", "A"): "sye",
+            ("first", "dual", "future", "A"): "syāvahe",
+            ("first", "plural", "future", "A"): "syāmahe",
         }
-        # Default to Parasmaipada if Ubhayapada or missing
+        
         v = "A" if voice == "A" else "P"
-        return supported[(person, number, tense, v)]
+        suffix = supported.get((person, number, tense, v), "")
+        
+        # It-Agama: Inject connecting 'i' if the root is seṭ and tense is future
+        if tense == "future" and settva == "S":
+            suffix = "i" + suffix
+            
+        return suffix

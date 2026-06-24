@@ -73,8 +73,19 @@ class TensorTokenizer:
         words = []
         for coord in coordinates:
             vec = coord.vector
-            root_str = REV_ROOT.get(vec[0], "unknown")
-            pos_str = REV_POS.get(vec[1], "unknown")
+            
+            # Dynamically handle 5D (Nouns) and 6D (Verbs) tensors
+            if len(vec) == 6:
+                upasarga_id, root_id, pos_id, f1, f2, f3 = vec
+            elif len(vec) == 5:
+                upasarga_id = 0
+                root_id, pos_id, f1, f2, f3 = vec
+            else:
+                raise ValueError(f"Invalid tensor dimension: {len(vec)}")
+                
+            root_str = REV_ROOT.get(root_id, "unknown")
+            pos_str = REV_POS.get(pos_id, "unknown")
+            upasarga_str = REV_UPASARGA.get(upasarga_id, "") if upasarga_id != 0 else ""
             
             # The base grammatical string to be modified
             base_string = root_str
@@ -86,42 +97,52 @@ class TensorTokenizer:
             }
             
             if pos_str == "noun":
-                env["gender"] = REV_GENDER.get(vec[2], "masculine")
-                env["case"] = REV_CASE.get(vec[3], "nominative")
-                env["number"] = REV_NUMBER.get(vec[4], "singular")
+                env["gender"] = REV_GENDER.get(f1, "masculine")
+                env["case"] = REV_CASE.get(f2, "nominative")
+                env["number"] = REV_NUMBER.get(f3, "singular")
                 
                 # First pass: use generic morphology generator
                 entry = NounEntry(root_str, env["gender"], "Unknown")
                 base_string = self.morphology.decline(entry, env["case"], env["number"]).text
                 
             elif pos_str == "verb":
-                env["tense"] = REV_TENSE.get(vec[2], "present")
-                env["person"] = REV_PERSON.get(vec[3], "third")
-                env["number"] = REV_NUMBER.get(vec[4], "singular")
+                env["tense"] = REV_TENSE.get(f1, "present")
+                env["person"] = REV_PERSON.get(f2, "third")
+                env["number"] = REV_NUMBER.get(f3, "singular")
                 
                 # Fetch Dhatu Metadata
-                dhatu_meta = DHATU_META.get(root_str, {"gana": "1", "pada": "P"})
+                dhatu_meta = DHATU_META.get(root_str, {"gana": "1", "pada": "P", "settva": "S"})
                 env["voice"] = dhatu_meta["pada"]
                 env["gana"] = dhatu_meta["gana"]
+                env["settva"] = dhatu_meta.get("settva", "S")
                 
                 # First pass: generic conjugation with Vikarana
                 # Gana 1 (Bhvadi) gets 'a' vikarana, Gana 4 (Divadi) gets 'ya'
-                if env["gana"] == "1":
-                    present_stem = root_str + "a"
-                elif env["gana"] == "4":
-                    present_stem = root_str + "ya"
+                # NOTE: Vikarana is usually only applied in Sarvadhatuka tenses (like Present).
+                # For Future (Lrt), the vikarana is dropped and 'sya' is added.
+                if env["tense"] == "present":
+                    if env["gana"] == "1":
+                        present_stem = root_str + "a"
+                    elif env["gana"] == "4":
+                        present_stem = root_str + "ya"
+                    else:
+                        present_stem = root_str
                 else:
-                    present_stem = root_str
+                    present_stem = root_str # No vikarana for Future (Ardhadhatuka)
                     
                 entry = VerbEntry(root_str, present_stem, "Unknown")
                 try:
-                    base_string = self.morphology.conjugate(entry, env["person"], env["number"], env["tense"], env["voice"]).text
+                    base_string = self.morphology.conjugate(entry, env["person"], env["number"], env["tense"], env["voice"], env["settva"]).text
                 except ValueError:
                     # Base engine doesn't support this tense, fallback to root and let RuleDB handle it
                     base_string = root_str
+                    
+                # Prepend Upasarga
+                if upasarga_str:
+                    base_string = upasarga_str + base_string
                 
             else:
-                raise ValueError(f"Unsupported POS ID or unknown POS: {vec[1]}")
+                raise ValueError(f"Unsupported POS ID or unknown POS: {pos_id}")
                 
             # Second pass: PANINIAN CONSISTENCY via Dynamic Matrix Fetching
             # The Tokenizer checks the RuleDatabase to see if any custom
@@ -138,5 +159,17 @@ class TensorTokenizer:
                 base_string = token["text"]
                 
             words.append(base_string)
+            
+        # Third pass: EXTERNAL SANDHI (Vakya Sandhi)
+        # Apply phonetic rules across word boundaries
+        if self.rule_db and len(words) > 1:
+            for i in range(len(words) - 1):
+                token = (words[i], words[i+1])
+                env = {"pos": "sandhi"}
+                applicable_rules = self.rule_db.get_applicable_rules(token, env)
+                for rule in applicable_rules:
+                    token = rule.apply(token, env)
+                words[i] = token[0]
+                words[i+1] = token[1]
         
         return " ".join(words)
