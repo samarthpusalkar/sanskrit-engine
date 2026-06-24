@@ -1,6 +1,7 @@
 import pytest
 from sanskrit_engine.tensor_tokenizer import TensorTokenizer, TensorCoordinate
 from sanskrit_engine.morphology import RuleBasedMorphology
+from sanskrit_engine.config_index import *
 from sanskrit_engine import load_rules
 
 @pytest.fixture
@@ -18,59 +19,49 @@ def test_tokenizer_bidirectional_consistency(tokenizer):
     # Encode text to coordinates
     coordinates = tokenizer.encode(original_text)
     
-    # Assert coordinates match expected tensor semantics
+    # Assert coordinates match expected INTEGER tensor semantics
     assert len(coordinates) == 2
-    assert coordinates[0].root == "rāma"
-    assert coordinates[0].mods["case"] == "nominative"
-    assert coordinates[1].root == "gam"
-    assert coordinates[1].mods["person"] == "third"
+    # rāma, noun, masculine, nominative, singular
+    assert coordinates[0].vector == [ROOT_VOCAB["rāma"], POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
+    # gam, verb, present, third, singular
+    assert coordinates[1].vector == [ROOT_VOCAB["gam"], POS_VOCAB["verb"], TENSE_VOCAB["present"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]]
     
     # Decode coordinates back to text
     decoded_text = tokenizer.decode(coordinates)
-    
-    # Round-trip consistency check
     assert decoded_text == original_text
 
-def test_tokenizer_decodes_complex_forms(tokenizer):
-    # Test decoding an invalid but strictly rule-following vector.
-    # The subanta engine currently only supports a limited set of suffixes (nominative, accusative, etc.).
-    # We will test decoding a nominative plural to prove it calls the engine properly.
-    coordinates = [
-        TensorCoordinate("rāma", {"pos": "noun", "gender": "masculine", "case": "nominative", "number": "plural"}),
-        TensorCoordinate("gam", {"pos": "verb", "person": "third", "number": "singular", "tense": "present"})
-    ]
-    decoded_text = tokenizer.decode(coordinates)
-    assert decoded_text == "rāmāḥ gacchati" # Based on the rule jas -> āḥ
+def test_tokenizer_decodes_edge_cases(tokenizer):
+    """
+    Test decoding complex morphological edge cases like reduplication and perfect tense.
+    """
+    # 1. Reduplication (Juhotyādi)
+    dadaati_vector = TensorCoordinate([ROOT_VOCAB["dā"], POS_VOCAB["verb"], TENSE_VOCAB["present"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]])
+    assert tokenizer.decode([dadaati_vector]) == "dadāti"
+    
+    # 2. Perfect Tense Reduplication & Consonant Shift
+    jaghana_vector = TensorCoordinate([ROOT_VOCAB["han"], POS_VOCAB["verb"], TENSE_VOCAB["perfect"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]])
+    assert tokenizer.decode([jaghana_vector]) == "jaghāna"
+    
+    # 3. Guna Vowel Strengthening
+    bhavati_vector = TensorCoordinate([ROOT_VOCAB["bhū"], POS_VOCAB["verb"], TENSE_VOCAB["present"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]])
+    assert tokenizer.decode([bhavati_vector]) == "bhavati"
 
 def test_compound_module_morphology_and_sandhi(tokenizer):
-    """
-    Tests coherent interaction between the Morphology engine (generating words)
-    and the Sandhi engine (gluing them phonetically in a sentence).
-    """
     from sanskrit_engine.enforcer import RuleEnforcer
     from sanskrit_engine import load_rules
     
-    # 1. Morphological Generation
+    # deva, nominative, singular + avatāra, nominative, singular
     coordinates = [
-        TensorCoordinate("deva", {"pos": "noun", "gender": "masculine", "case": "nominative", "number": "singular"}),
-        TensorCoordinate("avatāra", {"pos": "noun", "gender": "masculine", "case": "nominative", "number": "singular"})
+        TensorCoordinate([ROOT_VOCAB["deva"], POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]),
+        TensorCoordinate([ROOT_VOCAB["avatāra"], POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]])
     ]
     
-    # Normally devasu -> devaḥ, avatārasu -> avatāraḥ
-    decoded_text = tokenizer.decode(coordinates)
-    
-    # We will simulate the morphology output text here for the sandhi test
-    # (assuming decoder gave 'devaḥ avatāraḥ' but for simplicity let's test 'deva avatāraḥ')
+    decoded_text = tokenizer.decode(coordinates) # Generates un-sandhied words
+    # Assume 'devaḥ avatāraḥ' for simplicity of the sandhi merge rule testing
     raw_sentence = "deva avatāraḥ"
     
-    # 2. Phonological Sandhi Merging
     sandhi_rules = load_rules("data/rules/sandhi.json")
     enforcer = RuleEnforcer(sandhi_rules)
-    
-    # Interaction: The raw tokens from morphology must correctly trigger 
-    # the Savarṇadīrgha Sandhi rule (a + a = ā)
     final_sentence = enforcer.enforce_text(raw_sentence).output_text
     
     assert final_sentence == "devāvatāraḥ"
-    # This verifies compound system coherence: Tokenizer -> Morphology -> Sandhi
-
