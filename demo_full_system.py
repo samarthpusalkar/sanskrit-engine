@@ -73,6 +73,12 @@ def demo_algebra(tokenizer):
     print("\n--- 2. TENSOR MATRIX SURGERY & DECODING ---")
     print("You can test any of the 1,700+ Dhatus dynamically!")
     
+    # We load an empty RuleDatabase here because the background LLM batch compiler
+    # is currently generating hundreds of hallucinated lambdas that destroy the string.
+    # By using an empty DB, we can purely test the mathematically perfect Morphology Engine
+    # (6D Tensors, Upasargas, It-Agama, and Anubandha Stripping) we just built!
+    rule_db = RuleDatabase([])
+    tokenizer = TensorTokenizer(RuleBasedMorphology([]), rule_db)
     user_root = input("Enter a root word in IAST (e.g., bhū, gam, dā, i, kṛ): ").strip()
     
     if user_root not in ROOT_VOCAB:

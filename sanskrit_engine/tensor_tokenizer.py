@@ -154,7 +154,15 @@ class TensorTokenizer:
                 
                 # Sequentially apply the fetched mathematical transformations
                 for rule in applicable_rules:
-                    token = rule.apply(token, env)
+                    try:
+                        token_new = rule.apply(token, env)
+                        if isinstance(token_new, dict):
+                            token = token_new
+                        elif isinstance(token_new, str):
+                            token["text"] = token_new
+                    except Exception as e:
+                        # Skip badly compiled LLM rules rather than crashing
+                        pass
                 
                 base_string = token["text"]
                 
@@ -168,7 +176,12 @@ class TensorTokenizer:
                 env = {"pos": "sandhi"}
                 applicable_rules = self.rule_db.get_applicable_rules(token, env)
                 for rule in applicable_rules:
-                    token = rule.apply(token, env)
+                    try:
+                        token_new = rule.apply(token, env)
+                        if isinstance(token_new, tuple) and len(token_new) == 2:
+                            token = token_new
+                    except Exception as e:
+                        pass
                 words[i] = token[0]
                 words[i+1] = token[1]
         

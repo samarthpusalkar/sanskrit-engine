@@ -63,6 +63,12 @@ class RuleDatabase:
         self._load_db()
 
     def _load_db(self):
+        if not self.db_filepath or isinstance(self.db_filepath, list):
+            return
+        import os    
+        if not os.path.exists(self.db_filepath):
+            return
+            
         try:
             with open(self.db_filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
