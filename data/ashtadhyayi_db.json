@@ -2,7 +2,7 @@
     "rules": [
         {
             "rule_id": "6.1.101",
-            "name": "akaha savarne dirghah",
+            "name": "akaḥ savarṇe dīrghaḥ",
             "category": "vidhi",
             "priority": 100,
             "domain": [
@@ -25,19 +25,34 @@
             },
             "operation": {
                 "type": "lambda",
-                "executable": "lambda t, env: (t[0][:-1] + 'ā' if t[0][-1] == 'a' else t[0], t[1][1:])"
+                "executable": "lambda token, env: token[:-1] + env.savarna_long_map.get(token[-1], token[-1]) if len(token) >= 1 and token[-1] in ['a', 'i', 'u', 'ṛ', 'ḷ'] else token"
             }
         },
         {
-            "rule_id": "0.0.0",
-            "name": "Dummy Rule",
+            "rule_id": "6.1.77",
+            "name": "iko yaṇaci",
             "category": "vidhi",
-            "priority": 0,
-            "domain": [],
-            "conditions": {},
+            "priority": 100,
+            "domain": [
+                "verb",
+                "noun"
+            ],
+            "conditions": {
+                "target": {
+                    "ends_with_vowel": [
+                        "i",
+                        "u",
+                        "ṛ",
+                        "ḷ"
+                    ]
+                },
+                "right_context": {
+                    "starts_with_vowel": true
+                }
+            },
             "operation": {
                 "type": "lambda",
-                "executable": "lambda t, env: t"
+                "executable": "lambda token, env: token[:-1] + {'i':'y', 'u':'v', 'ṛ':'r', 'ḷ':'l'}.get(token[-1], '') if token and token[-1] in ['i','u','ṛ','ḷ'] and env.get('next_char') and env['next_char'] in ['a','i','u','ṛ','ḷ','ā','ī','ū','ṝ','l̥','ā','ī','ū','ṝ','l̥','e','ai','o','au'] else token"
             }
         }
     ]
