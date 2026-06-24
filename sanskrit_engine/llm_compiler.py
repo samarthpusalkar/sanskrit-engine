@@ -23,15 +23,19 @@ class OllamaCloudClient:
     def generate_json_rule(self, sutra_text: str, meaning_text: str, error_feedback: str = None) -> Dict[str, Any]:
         prompt = f'''
         You are an expert Paninian Sanskrit Grammarian and Python Coder.
-        Parse the following Sutra and Meaning into our strict engine JSON Schema.
+        Parse the following Sutra into our strict engine JSON Schema.
         Sutra: {sutra_text}
-        Meaning: {meaning_text}
+        
+        The following block contains PadacCheda (word split), Anuvrtti (inherited words from previous rules), and Adhikara (governing domain). You MUST use the Anuvrtti and Adhikara to construct your mathematical logic!
+        Context Data:
+        {meaning_text}
         
         CRITICAL PYTHON CONSTRAINTS:
         1. `token` can either be a tuple of two strings (e.g., `("rāma", "avatāra")`) for Sandhi rules, OR a dictionary (e.g., `{{"text": "bhū", "pos": "verb"}}`) for morphology rules.
         2. ALWAYS use `isinstance(token, tuple)` or `isinstance(token, dict)` to check the type before applying string or dictionary methods. Do not assume `token` is always a dict or always a tuple.
         3. ONLY use standard Python built-in methods (like `.endswith()`, `[:-1]`, etc). DO NOT hallucinate nonexistent methods like `token.get_vowel()` or `token.is_consonant()`.
         4. The lambda must return the modified token in the exact same data type it received (e.g., if token is a tuple, return a modified tuple. If it is a dict, return a dict).
+        5. STRICT UNICODE IAST: When generating character matches or replacements, NEVER use ASCII substitutes like capital 'A' for long 'a'. You MUST use strict Unicode IAST characters: ā, ī, ū, ṛ, ṝ, ḷ, ñ, ṅ, ṣ, ś, ṭ, ḍ, ṇ.
 
         Output valid JSON with the following structure:
         {{
@@ -160,6 +164,10 @@ class AshtadhyayiCompiler:
                     print(f"-> Validation failed for {rule_data.get('rule_id', 'Unknown')}: {err_msg}")
                     error_feedback = err_msg
                     continue
+                    
+                # Force pristine IAST name from our Python library
+                if sutra.get("iast_name"):
+                    rule_data["name"] = sutra["iast_name"]
                     
                 # 3. Commit to Database
                 self.db.insert_rule(rule_data)
