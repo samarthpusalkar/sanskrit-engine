@@ -83,8 +83,9 @@ class TensorTokenizer:
         self.stem_map = {}
         for root_str, root_id in ROOT_VOCAB.items():
             self.stem_map[root_str] = root_id
-            if root_str.endswith("a") or root_str.endswith("i") or root_str.endswith("u"):
-                self.stem_map[root_str[:-1]] = root_id
+            if root_str.endswith(("a", "i", "u", "ā", "ī", "ū")):
+                if len(root_str) > 1:
+                    self.stem_map[root_str[:-1]] = root_id
             else:
                 self.stem_map[root_str + "a"] = root_id
                 self.stem_map[root_str + "i"] = root_id
@@ -98,7 +99,7 @@ class TensorTokenizer:
             rid = ROOT_VOCAB.get(root)
             if rid:
                 self.stem_map[ex_stem] = rid
-                if ex_stem.endswith("a"):
+                if ex_stem.endswith("a") and len(ex_stem) > 1:
                     self.stem_map[ex_stem[:-1]] = rid
 
     def encode(self, text: str) -> List[TensorCoordinate]:
@@ -123,10 +124,12 @@ class TensorTokenizer:
             "sya": (CASE_VOCAB["genitive"], NUMBER_VOCAB["singular"]),
             "am": (CASE_VOCAB["accusative"], NUMBER_VOCAB["singular"]),
             "m": (CASE_VOCAB["accusative"], NUMBER_VOCAB["singular"]),
+            "ṃ": (CASE_VOCAB["accusative"], NUMBER_VOCAB["singular"]),
             "ḥ": (CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]),
             "ena": (CASE_VOCAB["instrumental"], NUMBER_VOCAB["singular"]),
             "āya": (CASE_VOCAB["dative"], NUMBER_VOCAB["singular"]),
             "āt": (CASE_VOCAB["ablative"], NUMBER_VOCAB["singular"]),
+            "ād": (CASE_VOCAB["ablative"], NUMBER_VOCAB["singular"]),
             "e": (CASE_VOCAB["locative"], NUMBER_VOCAB["singular"]),
             "au": (CASE_VOCAB["nominative"], NUMBER_VOCAB["dual"]),
             "ābhyām": (CASE_VOCAB["instrumental"], NUMBER_VOCAB["dual"]),
@@ -138,6 +141,7 @@ class TensorTokenizer:
             "āni": (CASE_VOCAB["nominative"], NUMBER_VOCAB["plural"]),
             "āṇi": (CASE_VOCAB["nominative"], NUMBER_VOCAB["plural"]),
             "eṣu": (CASE_VOCAB["locative"], NUMBER_VOCAB["plural"]),
+            "ā": (CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]),
         }
         upasargas = ("pra", "parā", "apa", "sam", "anu", "ava", "nis", "nir", "dus", "dur", "vi", "ā", "ni", "adhi", "api", "ati", "su", "ut", "abhi", "prati", "pari", "upa")
         

@@ -68,6 +68,9 @@ class TemplateMorphology:
             rule_ids=("template.present_parasmaipada",),
         )
 
+    def derive(self, root: str, derivation_type: str) -> str:
+        return root
+
 
 class RuleBasedMorphology:
     """Morphology by executing rule packs over stem + affix tokens."""
