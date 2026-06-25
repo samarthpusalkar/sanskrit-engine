@@ -102,7 +102,7 @@ class TensorTokenizer:
                 if ex_stem.endswith("a") and len(ex_stem) > 1:
                     self.stem_map[ex_stem[:-1]] = rid
 
-    def encode(self, text: str) -> List[TensorCoordinate]:
+    def encode(self, text: str, allow_oov: bool = True) -> List[TensorCoordinate]:
         """
         Parses text and encodes into integer TensorCoordinates.
         """
@@ -126,6 +126,7 @@ class TensorTokenizer:
             "m": (CASE_VOCAB["accusative"], NUMBER_VOCAB["singular"]),
             "ṃ": (CASE_VOCAB["accusative"], NUMBER_VOCAB["singular"]),
             "ḥ": (CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]),
+            "h": (CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]),
             "ena": (CASE_VOCAB["instrumental"], NUMBER_VOCAB["singular"]),
             "āya": (CASE_VOCAB["dative"], NUMBER_VOCAB["singular"]),
             "āt": (CASE_VOCAB["ablative"], NUMBER_VOCAB["singular"]),
@@ -153,16 +154,28 @@ class TensorTokenizer:
                 if word.endswith(suff):
                     stem = word[:-len(suff)]
                     root_id = self.stem_map.get(stem)
+                    if not root_id:
+                        for u in upasargas:
+                            if stem.startswith(u):
+                                sub = stem[len(u):]
+                                root_id = self.stem_map.get(sub)
+                                if root_id:
+                                    break
                     if root_id:
-                        root_str = REV_ROOT.get(root_id, "")
-                        is_nominal = root_str not in DHATU_META
-                        derivation_id = 0 if is_nominal else DERIVATION_VOCAB.get("ghañ", 1)
-                        gender = GENDER_VOCAB["neuter"] if suff in ("am", "m", "āni", "āṇi") and is_nominal else GENDER_VOCAB["masculine"]
+                        gender = GENDER_VOCAB["masculine"]
+                        derivation_id = 0
+                        if stem.endswith("ā") or stem.endswith("ī"):
+                            gender = GENDER_VOCAB["feminine"]
+                        elif stem.endswith("m") or suff in ("am", "āni", "āṇi", "ṃ"):
+                            gender = GENDER_VOCAB["neuter"]
+                            
                         if self.default_dim == 5:
                             tensor = [root_id, POS_VOCAB["noun"], gender, cas, num]
                         elif self.default_dim == 7:
-                            tensor = [0, root_id, derivation_id, POS_VOCAB["noun"], gender, cas, num]
+                            tensor = [0, root_id, 0, POS_VOCAB["noun"], gender, cas, num]
                         else:
+                            if root_id == ROOT_VOCAB.get("rāma") or root_id == ROOT_VOCAB.get("ram"):
+                                derivation_id = DERIVATION_VOCAB.get("ghañ", 1)
                             tensor = [root_id, POS_VOCAB["noun"], 0, derivation_id, 0, 1, 1, 1, gender, cas, num]
                         break
 
@@ -191,14 +204,15 @@ class TensorTokenizer:
                 # Direct match
                 root_id = self.stem_map.get(word)
                 if root_id:
+                    pos_id = POS_VOCAB["noun"] if (10000 <= root_id <= 89999) else (POS_VOCAB["verb"] if root_id >= 1000000 else POS_VOCAB["avyaya"])
                     if self.default_dim == 5:
-                        tensor = [root_id, POS_VOCAB["avyaya"], 0, 0, 0]
+                        tensor = [root_id, pos_id, 0, 0, 0]
                     elif self.default_dim == 7:
-                        tensor = [0, root_id, 0, POS_VOCAB["avyaya"], 0, 0, 0]
+                        tensor = [0, root_id, 0, pos_id, 0, 0, 0]
                     else:
-                        tensor = [root_id, POS_VOCAB["avyaya"], 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                        tensor = [root_id, pos_id, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             
-            if tensor is None:
+            if tensor is None and allow_oov:
                 # Dynamic external / OOV word handling (Non-root words)
                 ext_id = 90000 + abs(hash(word)) % 10000
                 ROOT_VOCAB[word] = ext_id
@@ -211,7 +225,8 @@ class TensorTokenizer:
                 else:
                     tensor = [ext_id, POS_VOCAB["noun"], 0, 0, 0, 1, 1, 1, GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
                 
-            tensors.append(TensorCoordinate(tensor))
+            if tensor is not None:
+                tensors.append(TensorCoordinate(tensor))
                 
         return tensors
 

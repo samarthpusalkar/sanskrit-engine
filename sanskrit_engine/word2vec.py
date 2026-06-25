@@ -94,9 +94,12 @@ class SandhiSplitterTokenizer:
         self.tokenizer = tokenizer
 
     def is_valid_pada(self, word: str) -> bool:
-        if word in self.table.word_to_vec or self.tokenizer.stem_map.get(word):
+        if word in self.table.word_to_vec:
             return True
-        encoded = self.tokenizer.encode(word)
+        cid = self.tokenizer.stem_map.get(word)
+        if cid and not (90000 <= cid <= 99999):
+            return True
+        encoded = self.tokenizer.encode(word, allow_oov=False)
         if encoded and len(encoded) == 1:
             cid = encoded[0].vector[0]
             if cid > 0 and not (90000 <= cid <= 99999):
