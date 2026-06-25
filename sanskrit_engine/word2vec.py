@@ -1,0 +1,152 @@
+"""
+Bidirectional Word2Vec and Vec2Word Engine with FST/Trie Cache.
+Provides O(1) vectorized morphological lookups and Sandhi splitting.
+Consistent with 11D Tensor Coordinate Contract [V0..V10].
+"""
+
+from __future__ import annotations
+from typing import Any, Dict, List, Optional, Tuple
+
+from .config_index import *
+from .tensor_tokenizer import TensorCoordinate, TensorTokenizer
+
+
+class TrieNode:
+    """Node in Fast String Trie (FST) for prefix matching and O(1) lookups."""
+    def __init__(self) -> None:
+        self.children: Dict[str, TrieNode] = {}
+        self.is_end_of_word: bool = False
+        self.coordinates: List[TensorCoordinate] = []
+
+
+class RainbowTableGenerator:
+    """
+    Generates and indexes exhaustive surface form <-> 11D Tensor mappings.
+    Acts as a precompiled FST lookup table avoiding runtime derivation overhead.
+    """
+    def __init__(self) -> None:
+        self.root = TrieNode()
+        self.vec_to_word: Dict[Tuple[int, ...], str] = {}
+        self.word_to_vec: Dict[str, List[TensorCoordinate]] = {}
+
+    def insert(self, word: str, coord: TensorCoordinate) -> None:
+        """Inserts a word and its vector coordinate into the Trie and reverse index."""
+        norm_vec = tuple(coord.to_11d().vector)
+        self.vec_to_word[norm_vec] = word
+        if word not in self.word_to_vec:
+            self.word_to_vec[word] = []
+        self.word_to_vec[word].append(coord)
+
+        # Trie Insertion
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end_of_word = True
+        node.coordinates.append(coord)
+
+    def lookup_word(self, word: str) -> List[TensorCoordinate]:
+        """O(1) dictionary lookup of all morphological vectors for a surface word."""
+        return self.word_to_vec.get(word, [])
+
+    def lookup_vector(self, coord: TensorCoordinate) -> Optional[str]:
+        """O(1) reverse lookup of surface form given an 11D vector coordinate."""
+        norm_vec = tuple(coord.to_11d().vector)
+        return self.vec_to_word.get(norm_vec)
+
+    def populate_common_corpus(self, tokenizer: TensorTokenizer) -> int:
+        """Populates cache with standard verbal conjugations and nominal declensions."""
+        count = 0
+        # Sample Verbal Roots
+        for r_str, r_id in list(ROOT_VOCAB.items())[:50]:
+            for p_name, p_id in list(PERSON_VOCAB.items())[:3]:
+                for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
+                    vec = [r_id, POS_VOCAB.get("verb", 2), 0, 0, 0, TENSE_VOCAB.get("present", 1), p_id, 1, 1, 1, n_id]
+                    coord = TensorCoordinate(vec)
+                    try:
+                        surf = tokenizer.decode([coord])
+                        self.insert(surf, coord)
+                        count += 1
+                    except Exception:
+                        pass
+                        
+        # Sample Nominal Roots
+        for n_str in ["rāma", "deva", "avatāra", "pustaka"]:
+            r_id = ROOT_VOCAB.get(n_str, 1)
+            for c_name, c_id in list(CASE_VOCAB.items())[:8]:
+                for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
+                    vec = [r_id, POS_VOCAB.get("noun", 1), 0, 0, 0, 1, 1, 1, GENDER_VOCAB.get("masculine", 1), c_id, n_id]
+                    coord = TensorCoordinate(vec)
+                    try:
+                        surf = tokenizer.decode([coord])
+                        self.insert(surf, coord)
+                        count += 1
+                    except Exception:
+                        pass
+        return count
+
+
+class SandhiSplitterTokenizer:
+    """
+    Splits continuous Sandhi text into constituent words using FST Trie prefix match
+    and reverse Sandhi boundary rules.
+    """
+    def __init__(self, rainbow_table: RainbowTableGenerator, tokenizer: TensorTokenizer) -> None:
+        self.table = rainbow_table
+        self.tokenizer = tokenizer
+
+    def unmerge_sandhi(self, continuous_word: str) -> List[str]:
+        """
+        Greedily attempts to split a compound/sandhi word into valid cached padas.
+        E.g., 'devāvatāraḥ' -> ['deva', 'avatāraḥ']
+        """
+        if continuous_word in self.table.word_to_vec:
+            return [continuous_word]
+
+        n = len(continuous_word)
+        for split_pos in range(1, n):
+            left_part = continuous_word[:split_pos]
+            right_part = continuous_word[split_pos:]
+
+            # Heuristic Sandhi boundary unmerging (Dirgha Sandhi: ā -> a + a)
+            candidates_left = [left_part]
+            candidates_right = [right_part]
+            if left_part.endswith("ā"):
+                candidates_left.append(left_part[:-1] + "a")
+                candidates_right.append("a" + right_part)
+                candidates_right.append("ā" + right_part)
+            elif left_part.endswith("e"):
+                candidates_left.append(left_part[:-1] + "a")
+                candidates_right.append("i" + right_part)
+                candidates_right.append("ī" + right_part)
+            elif left_part.endswith("o"):
+                candidates_left.append(left_part[:-1] + "a")
+                candidates_right.append("u" + right_part)
+                candidates_right.append("ū" + right_part)
+
+            for cl in candidates_left:
+                if cl in self.table.word_to_vec or self.tokenizer.stem_map.get(cl):
+                    for cr in candidates_right:
+                        if cr in self.table.word_to_vec or self.tokenizer.stem_map.get(cr):
+                            return [cl, cr]
+
+        return [continuous_word] # Fallback unsplit
+
+    def tokenize_to_vectors(self, continuous_text: str) -> List[TensorCoordinate]:
+        """Splits continuous Sanskrit sentence into 11D morphological coordinates."""
+        raw_words = continuous_text.split()
+        split_words: List[str] = []
+        for rw in raw_words:
+            split_words.extend(self.unmerge_sandhi(rw))
+
+        vectors: List[TensorCoordinate] = []
+        for sw in split_words:
+            cached = self.table.lookup_word(sw)
+            if cached:
+                vectors.append(cached[0].to_11d())
+            else:
+                encoded = self.tokenizer.encode(sw)
+                if encoded:
+                    vectors.append(encoded[0].to_11d())
+        return vectors

@@ -216,13 +216,13 @@ class RuleBasedMorphology:
             
         supported = {
             # Parasmaipada Present
-            ("third", "singular", "present", "P"): "ti",
+            ("third", "singular", "present", "P"): "tip",
             ("third", "dual", "present", "P"): "taḥ",
-            ("third", "plural", "present", "P"): "nti",
-            ("second", "singular", "present", "P"): "si",
+            ("third", "plural", "present", "P"): "jhi",
+            ("second", "singular", "present", "P"): "sip",
             ("second", "dual", "present", "P"): "thaḥ",
             ("second", "plural", "present", "P"): "tha",
-            ("first", "singular", "present", "P"): "mi",
+            ("first", "singular", "present", "P"): "mip",
             ("first", "dual", "present", "P"): "vaḥ",
             ("first", "plural", "present", "P"): "maḥ",
             

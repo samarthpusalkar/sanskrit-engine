@@ -117,6 +117,7 @@ def populate_vocabularies(dhatu_filepath: str = None):
                     if d_name_iast not in ROOT_VOCAB:
                         max_id += 1
                         ROOT_VOCAB[d_name_iast] = max_id
+                    ROOT_VOCAB[d_name_devanagari] = ROOT_VOCAB[d_name_iast]
                     
                     # True Paninian Anubandha Stripping
                     # ñit (ñ) -> Ubhayapada
@@ -133,10 +134,13 @@ def populate_vocabularies(dhatu_filepath: str = None):
                         "pada": calc_pada,
                         "settva": item.get("settva", "S") # 'S' = seṭ, 'A' = aniṭ
                     }
+                    DHATU_META[d_name_devanagari] = DHATU_META[d_name_iast]
                     
-    # Generate Reverse Index by mutating in-place so imported references update
+    # Generate Reverse Index mapping ID -> IAST string
     REV_ROOT.clear()
-    REV_ROOT.update({v: k for k, v in ROOT_VOCAB.items()})
+    for k, v in ROOT_VOCAB.items():
+        if v not in REV_ROOT:
+            REV_ROOT[v] = k
 
 # Initial population using static defaults
 populate_vocabularies()
