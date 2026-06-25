@@ -233,6 +233,42 @@
         "right_new": "",
         "remove_right": true
       }
+    },
+    {
+      "id": "7.1.54.gen.pl",
+      "name": "a-stem genitive plural: a + ām -> ānāṃ",
+      "type": "vidhi",
+      "priority": 110,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "stem_final": "a"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "genitive", "number": "plural"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "a",
+        "new": "ānāṃ",
+        "right_old": "ām",
+        "right_new": "",
+        "remove_right": true
+      }
+    },
+    {
+      "id": "6.1.68.fem.nom.sg",
+      "name": "ā-stem feminine nominative singular: ā + su -> ā",
+      "type": "vidhi",
+      "priority": 110,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "stem_final": "ā"}},
+        "right": {"tag": "sup", "feature_equals": {"case": "nominative", "number": "singular"}}
+      },
+      "operation": {
+        "type": "rewrite_boundary",
+        "old": "ā",
+        "new": "ā",
+        "right_old": "su",
+        "right_new": "",
+        "remove_right": true
+      }
     }
   ]
 }

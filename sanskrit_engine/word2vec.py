@@ -62,7 +62,7 @@ class RainbowTableGenerator:
             if r_str in DHATU_META:
                 for p_name, p_id in list(PERSON_VOCAB.items())[:3]:
                     for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
-                        vec = [r_id, POS_VOCAB.get("verb", 2), 0, 0, 0, TENSE_VOCAB.get("present", 1), p_id, 1, 1, 1, n_id]
+                        vec = [r_id, POS_VOCAB.get("verb", 2), 0, 0, 0, TENSE_VOCAB.get("present", 1), p_id, 1, 0, 0, n_id]
                         coord = TensorCoordinate(vec)
                         try:
                             surf = tokenizer.decode([coord])
@@ -73,7 +73,7 @@ class RainbowTableGenerator:
             else:
                 for c_name, c_id in list(CASE_VOCAB.items())[:8]:
                     for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
-                        vec = [r_id, POS_VOCAB.get("noun", 1), 0, 0, 0, 1, 1, 1, GENDER_VOCAB.get("masculine", 1), c_id, n_id]
+                        vec = [r_id, POS_VOCAB.get("noun", 1), 0, 0, 0, 0, 0, 0, GENDER_VOCAB.get("masculine", 1), c_id, n_id]
                         coord = TensorCoordinate(vec)
                         try:
                             surf = tokenizer.decode([coord])
@@ -101,9 +101,9 @@ class SandhiSplitterTokenizer:
         if encoded and len(encoded) == 1:
             cid = encoded[0].vector[0]
             if cid > 0 and not (90000 <= cid <= 99999):
-                # Ensure it's not just a bare stem (unless Avyaya)
                 pos = encoded[0].vector[1] if len(encoded[0].vector) > 1 else 0
-                if pos == 6 or word not in self.tokenizer.stem_map:
+                vibhakti = encoded[0].vector[9] if len(encoded[0].vector) > 9 else 0
+                if pos == 6 or vibhakti > 0 or (word in self.tokenizer.stem_map and len(word) >= 3):
                     return True
         return False
 
@@ -148,6 +148,9 @@ class SandhiSplitterTokenizer:
             return [continuous_word]
 
         n = len(continuous_word)
+        best_split = None
+        AVYAYAS = {"a", "sa", "ca", "tu", "hi", "mā", "vā", "api", "iti", "na", "eva"}
+
         for split_pos in range(1, n):
             left_part = continuous_word[:split_pos]
             right_part = continuous_word[split_pos:]
@@ -167,6 +170,11 @@ class SandhiSplitterTokenizer:
                 candidates_left.append(left_part[:-1] + "a")
                 candidates_right.append("u" + right_part)
                 candidates_right.append("ū" + right_part)
+            elif left_part.endswith("ai"):
+                candidates_left.append(left_part[:-2] + "a")
+                candidates_left.append(left_part[:-2] + "ā")
+                candidates_right.append("e" + right_part)
+                candidates_right.append("ai" + right_part)
             elif left_part.endswith("y"):
                 candidates_left.append(left_part[:-1] + "i")
                 candidates_right.append(right_part)
@@ -174,7 +182,6 @@ class SandhiSplitterTokenizer:
                 candidates_left.append(left_part[:-1] + "ḥ")
                 candidates_right.append(right_part)
 
-            AVYAYAS = {"a", "sa", "ca", "tu", "hi", "mā", "vā", "api", "iti", "na"}
             for cl in candidates_left:
                 if len(cl) < 2 and cl not in AVYAYAS:
                     continue
@@ -182,9 +189,11 @@ class SandhiSplitterTokenizer:
                     for cr in candidates_right:
                         res_right = self.unmerge_sandhi(cr, max_depth - 1)
                         if all((len(w) > 1 or w in AVYAYAS) and self.is_valid_pada(w) for w in res_right):
-                            return [cl] + res_right
+                            candidate_split = [cl] + res_right
+                            if best_split is None or len(candidate_split) < len(best_split):
+                                best_split = candidate_split
 
-        return [continuous_word] # Fallback unsplit
+        return best_split if best_split is not None else [continuous_word]
 
     def tokenize_to_vectors(self, continuous_text: str) -> List[TensorCoordinate]:
         """Splits continuous Sanskrit sentence into 11D morphological coordinates."""

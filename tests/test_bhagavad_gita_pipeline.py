@@ -131,3 +131,43 @@ def test_destructive_morphology_and_gita_verbs(gita_pipeline):
 
     assert neg_noun[0].vector[1] == 1   # noun
 
+
+def test_mahapanishad_shloka_accuracy(gita_pipeline):
+    tokenizer, splitter = gita_pipeline
+    shloka = "udāracaritānāṃ tu vasudhaiva kuṭumbakam"
+    vectors = splitter.tokenize_to_vectors(shloka)
+
+    assert len(vectors) == 6
+    # 1. udāra (Samāsa pūrvapada nominal stem)
+    assert vectors[0].vector[0] == 19456
+    assert vectors[0].vector[1] == 1  # noun
+    assert vectors[0].vector[5] == 0 and vectors[0].vector[6] == 0 and vectors[0].vector[7] == 0  # no verb contamination
+
+    # 2. caritānāṃ (Genitive plural noun)
+    assert vectors[1].vector[0] == 19181
+    assert vectors[1].vector[1] == 1  # noun
+    assert vectors[1].vector[8] == 3  # neuter
+    assert vectors[1].vector[9] == 6  # genitive
+    assert vectors[1].vector[10] == 3 # plural
+
+    # 3. tu (Avyaya)
+    assert vectors[2].vector[0] == 18511
+    assert vectors[2].vector[1] == 6  # avyaya
+    assert all(x == 0 for x in vectors[2].vector[2:])
+
+    # 4. vasudhā (Vṛddhi sandhi split left)
+    assert vectors[3].vector[0] == 16405
+    assert vectors[3].vector[8] == 2  # feminine
+    assert vectors[3].vector[9] == 1  # nominative
+
+    # 5. eva (Vṛddhi sandhi split right Avyaya)
+    assert vectors[4].vector[0] == 18451
+    assert vectors[4].vector[1] == 6  # avyaya
+
+    # 6. kuṭumbam (Diminutive neuter noun)
+    assert vectors[5].vector[0] == 19959
+    assert vectors[5].vector[8] == 3  # neuter
+
+    decoded = tokenizer.decode(vectors)
+    assert decoded == "udāra caritānāṃ tu vasudhā eva kuṭumbam"
+

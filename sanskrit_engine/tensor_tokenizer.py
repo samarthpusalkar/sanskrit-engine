@@ -142,6 +142,9 @@ class TensorTokenizer:
             "aiḥ": (CASE_VOCAB["instrumental"], NUMBER_VOCAB["plural"]),
             "ebhyaḥ": (CASE_VOCAB["dative"], NUMBER_VOCAB["plural"]),
             "ānām": (CASE_VOCAB["genitive"], NUMBER_VOCAB["plural"]),
+            "ānāṃ": (CASE_VOCAB["genitive"], NUMBER_VOCAB["plural"]),
+            "āṇām": (CASE_VOCAB["genitive"], NUMBER_VOCAB["plural"]),
+            "āṇāṃ": (CASE_VOCAB["genitive"], NUMBER_VOCAB["plural"]),
             "āni": (CASE_VOCAB["nominative"], NUMBER_VOCAB["plural"]),
             "āṇi": (CASE_VOCAB["nominative"], NUMBER_VOCAB["plural"]),
             "eṣu": (CASE_VOCAB["locative"], NUMBER_VOCAB["plural"]),
@@ -161,7 +164,7 @@ class TensorTokenizer:
                 elif self.default_dim == 7:
                     tensor = [0, cid, 0, POS_VOCAB['verb'], verb_hit['lakara'], verb_hit['purusa'], verb_hit['vacana']]
                 else:
-                    tensor = [cid, POS_VOCAB['verb'], 0, 0, 0, verb_hit['lakara'], verb_hit['purusa'], 1, 1, 1, verb_hit['vacana']]
+                    tensor = [cid, POS_VOCAB['verb'], 0, 0, 0, verb_hit['lakara'], verb_hit['purusa'], 1, 0, 0, verb_hit['vacana']]
             
             # Step 0b: Kṛdanta lookup
             if tensor is None:
@@ -169,31 +172,40 @@ class TensorTokenizer:
                 if krd_hit:
                     cid = krd_hit['concept_id']
                     deriv = krd_hit['derivation']
+                    pos_val = POS_VOCAB['avyaya'] if deriv in (3, 4) else POS_VOCAB['noun']
                     if self.default_dim == 5:
-                        tensor = [cid, POS_VOCAB['noun'], 0, 0, 0]
+                        tensor = [cid, pos_val, 0, 0, 0]
                     elif self.default_dim == 7:
-                        tensor = [0, cid, deriv, POS_VOCAB['noun'], 0, 0, 0]
+                        tensor = [0, cid, deriv, pos_val, 0, 0, 0]
                     else:
-                        tensor = [cid, POS_VOCAB['noun'], 0, deriv, 0, 0, 0, 0, 0, 0, 0]
+                        linga = GENDER_VOCAB['masculine'] if pos_val == POS_VOCAB['noun'] else 0
+                        vibhakti = CASE_VOCAB['nominative'] if pos_val == POS_VOCAB['noun'] else 0
+                        vacana = NUMBER_VOCAB['singular'] if pos_val == POS_VOCAB['noun'] else 0
+                        tensor = [cid, pos_val, 0, deriv, 0, 0, 0, 0, linga, vibhakti, vacana]
 
             # 1. Try stripping Noun Suffixes
             for suff, (cas, num) in suffix_map_noun.items():
                 if word.endswith(suff):
                     stem = word[:-len(suff)]
                     root_id = self.stem_map.get(stem)
+                    if not root_id and stem.endswith("k"):
+                        # Diminutive pleonastic -ka- stripping (e.g. kuṭumba + ka + am)
+                        root_id = self.stem_map.get(stem[:-1])
                     if not root_id:
                         for u in upasargas:
                             if stem.startswith(u):
                                 sub = stem[len(u):]
                                 root_id = self.stem_map.get(sub)
+                                if not root_id and sub.endswith("k"):
+                                    root_id = self.stem_map.get(sub[:-1])
                                 if root_id:
                                     break
                     if root_id:
                         gender = GENDER_VOCAB["masculine"]
                         derivation_id = 0
-                        if stem.endswith("ā") or stem.endswith("ī"):
+                        if word.endswith("ā") or word.endswith("ī") or stem.endswith("ā") or stem.endswith("ī"):
                             gender = GENDER_VOCAB["feminine"]
-                        elif stem.endswith("m") or suff in ("am", "āni", "āṇi", "ṃ"):
+                        elif word.endswith("m") or word.endswith("ṃ") or stem.endswith("m") or suff in ("am", "āni", "āṇi", "ṃ"):
                             gender = GENDER_VOCAB["neuter"]
                             
                         if self.default_dim == 5:
@@ -203,7 +215,7 @@ class TensorTokenizer:
                         else:
                             if root_id == ROOT_VOCAB.get("rāma") or root_id == ROOT_VOCAB.get("ram"):
                                 derivation_id = DERIVATION_VOCAB.get("ghañ", 1)
-                            tensor = [root_id, POS_VOCAB["noun"], 0, derivation_id, 0, 1, 1, 1, gender, cas, num]
+                            tensor = [root_id, POS_VOCAB["noun"], 0, derivation_id, 0, 0, 0, 0, gender, cas, num]
                         break
 
             # 2. Try stripping Verb Suffixes
@@ -225,13 +237,24 @@ class TensorTokenizer:
                             elif self.default_dim == 7:
                                 tensor = [0, root_id, 0, POS_VOCAB["verb"], TENSE_VOCAB["present"], pers, num]
                             else:
-                                tensor = [root_id, POS_VOCAB["verb"], 0, 0, 0, TENSE_VOCAB["present"], pers, 1, 1, 1, num]
+                                tensor = [root_id, POS_VOCAB["verb"], 0, 0, 0, TENSE_VOCAB["present"], pers, 1, 0, 0, num]
                             break
             if tensor is None:
-                # Direct match
-                root_id = self.stem_map.get(word)
+                # Direct match with Avyaya precedence
+                CLOSED_CLASS_AVYAYAS = {"tu", "ca", "vā", "na", "eva", "api", "iti", "hi", "mā", "saha", "alam", "athavā", "tathā", "yathā", "yadā", "tadā", "kutaḥ", "tatra", "atra", "sarvatra"}
+                if word in CLOSED_CLASS_AVYAYAS:
+                    try:
+                        from sanskrit_engine.pratipadika_db import get_pratipadika
+                        prat = get_pratipadika(word)
+                        root_id = prat['vector_meta']['concept_id'] if prat else (18511 if word=="tu" else 18451)
+                    except Exception:
+                        root_id = 18511 if word=="tu" else (18451 if word=="eva" else 18432)
+                    pos_id = POS_VOCAB["avyaya"]
+                else:
+                    root_id = self.stem_map.get(word)
+                    if root_id:
+                        pos_id = POS_VOCAB["noun"] if (10000 <= root_id <= 89999) else (POS_VOCAB["verb"] if root_id >= 1000000 else POS_VOCAB["avyaya"])
                 if root_id:
-                    pos_id = POS_VOCAB["noun"] if (10000 <= root_id <= 89999) else (POS_VOCAB["verb"] if root_id >= 1000000 else POS_VOCAB["avyaya"])
                     if self.default_dim == 5:
                         tensor = [root_id, pos_id, 0, 0, 0]
                     elif self.default_dim == 7:
@@ -250,7 +273,7 @@ class TensorTokenizer:
                 elif self.default_dim == 7:
                     tensor = [0, ext_id, 0, POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
                 else:
-                    tensor = [ext_id, POS_VOCAB["noun"], 0, 0, 0, 1, 1, 1, GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
+                    tensor = [ext_id, POS_VOCAB["noun"], 0, 0, 0, 0, 0, 0, GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
                 
             if tensor is not None:
                 tensors.append(TensorCoordinate(tensor))

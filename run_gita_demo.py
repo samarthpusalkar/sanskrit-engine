@@ -49,8 +49,9 @@ def run_demo():
     
     vectors = splitter.tokenize_to_vectors(shloka)
     print(f"[+] Encoded into {len(vectors)} morphological 11D Tensor Coordinates:")
-    for w, v in zip(shloka.split(), vectors):
-        print(f"    - {w:<15} -> {v.vector}")
+    for v in vectors:
+        surf = tokenizer.decode([v])
+        print(f"    - {surf:<15} -> {v.vector}")
 
     vector_filepath = "gita_shloka_vectors.json"
     with open(vector_filepath, "w", encoding="utf-8") as f:

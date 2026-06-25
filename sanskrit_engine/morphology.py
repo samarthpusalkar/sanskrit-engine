@@ -192,6 +192,7 @@ class RuleBasedMorphology:
             ("masculine", "locative", "singular"): "ṅi",
             ("masculine", "nominative", "plural"): "jas",
             ("masculine", "accusative", "plural"): "śas",
+            ("masculine", "genitive", "plural"): "ām",
             ("neuter", "nominative", "singular"): "su",
             ("neuter", "accusative", "singular"): "am",
             ("neuter", "instrumental", "singular"): "ṭā",
@@ -200,6 +201,7 @@ class RuleBasedMorphology:
             ("neuter", "locative", "singular"): "ṅi",
             ("neuter", "nominative", "plural"): "jas",
             ("neuter", "accusative", "plural"): "śas",
+            ("neuter", "genitive", "plural"): "ām",
             
             ("feminine", "nominative", "singular"): "su",
             ("feminine", "accusative", "singular"): "am",
@@ -209,6 +211,7 @@ class RuleBasedMorphology:
             ("feminine", "locative", "singular"): "ṅi",
             ("feminine", "nominative", "plural"): "jas",
             ("feminine", "accusative", "plural"): "śas",
+            ("feminine", "genitive", "plural"): "ām",
         }
         return supported.get((gender, case, number), "su") # fallback to su to prevent crashes
 
