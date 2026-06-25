@@ -96,15 +96,41 @@ class SandhiSplitterTokenizer:
     def is_valid_pada(self, word: str) -> bool:
         if word in self.table.word_to_vec:
             return True
-        cid = self.tokenizer.stem_map.get(word)
-        if cid and not (90000 <= cid <= 99999):
-            return True
+        # Check if it has a valid suffix using tokenizer
         encoded = self.tokenizer.encode(word, allow_oov=False)
         if encoded and len(encoded) == 1:
             cid = encoded[0].vector[0]
             if cid > 0 and not (90000 <= cid <= 99999):
-                return True
+                # Ensure it's not just a bare stem (unless Avyaya)
+                pos = encoded[0].vector[1] if len(encoded[0].vector) > 1 else 0
+                if pos == 6 or word not in self.tokenizer.stem_map:
+                    return True
         return False
+
+    def intercept_nominal_prefixes(self, word: str) -> Optional[List[str]]:
+        NOMINAL_PREFIXES = {
+            "a": "nan_negative",
+            "an": "nan_negative",
+            "su": "pradi_good",
+            "ku": "pradi_bad",
+            "sa": "saha_inclusive",
+            "prati": "avyaya_every",
+            "yathā": "avyaya_according",
+            "dur": "pradi_difficult", 
+            "dus": "pradi_difficult",
+            "duṣ": "pradi_difficult"
+        }
+        sorted_prefixes = sorted(NOMINAL_PREFIXES.keys(), key=len, reverse=True)
+        for prefix in sorted_prefixes:
+            if word.startswith(prefix):
+                base_candidate = word[len(prefix):]
+                if self.is_valid_pada(base_candidate):
+                    if prefix == "an" and (not base_candidate or base_candidate[0] not in "aāiīuūṛṝeoaiou"):
+                        continue
+                    if prefix == "a" and (not base_candidate or base_candidate[0] in "aāiīuūṛṝeoaiou"):
+                        continue
+                    return [prefix, base_candidate]
+        return None
 
     def unmerge_sandhi(self, continuous_word: str, max_depth: int = 4) -> List[str]:
         """
@@ -113,6 +139,11 @@ class SandhiSplitterTokenizer:
         """
         if self.is_valid_pada(continuous_word):
             return [continuous_word]
+            
+        intercepted = self.intercept_nominal_prefixes(continuous_word)
+        if intercepted:
+            return intercepted
+            
         if max_depth <= 0 or len(continuous_word) <= 2:
             return [continuous_word]
 
@@ -143,11 +174,14 @@ class SandhiSplitterTokenizer:
                 candidates_left.append(left_part[:-1] + "ḥ")
                 candidates_right.append(right_part)
 
+            AVYAYAS = {"a", "sa", "ca", "tu", "hi", "mā", "vā", "api", "iti", "na"}
             for cl in candidates_left:
+                if len(cl) < 2 and cl not in AVYAYAS:
+                    continue
                 if self.is_valid_pada(cl):
                     for cr in candidates_right:
                         res_right = self.unmerge_sandhi(cr, max_depth - 1)
-                        if all(self.is_valid_pada(w) for w in res_right):
+                        if all((len(w) > 1 or w in AVYAYAS) and self.is_valid_pada(w) for w in res_right):
                             return [cl] + res_right
 
         return [continuous_word] # Fallback unsplit

@@ -84,7 +84,7 @@ class TensorTokenizer:
         for root_str, root_id in ROOT_VOCAB.items():
             self.stem_map[root_str] = root_id
             if root_str.endswith(("a", "i", "u", "ā", "ī", "ū")):
-                if len(root_str) > 1:
+                if len(root_str[:-1]) > 1:
                     self.stem_map[root_str[:-1]] = root_id
             else:
                 self.stem_map[root_str + "a"] = root_id
