@@ -96,12 +96,14 @@ class SandhiSplitterTokenizer:
         self.table = rainbow_table
         self.tokenizer = tokenizer
 
-    def unmerge_sandhi(self, continuous_word: str) -> List[str]:
+    def unmerge_sandhi(self, continuous_word: str, max_depth: int = 4) -> List[str]:
         """
         Greedily attempts to split a compound/sandhi word into valid cached padas.
         E.g., 'devāvatāraḥ' -> ['deva', 'avatāraḥ']
         """
-        if continuous_word in self.table.word_to_vec:
+        if continuous_word in self.table.word_to_vec or self.tokenizer.stem_map.get(continuous_word):
+            return [continuous_word]
+        if max_depth <= 0 or len(continuous_word) <= 2:
             return [continuous_word]
 
         n = len(continuous_word)
@@ -109,7 +111,7 @@ class SandhiSplitterTokenizer:
             left_part = continuous_word[:split_pos]
             right_part = continuous_word[split_pos:]
 
-            # Heuristic Sandhi boundary unmerging (Dirgha Sandhi: ā -> a + a)
+            # Heuristic Sandhi boundary unmerging
             candidates_left = [left_part]
             candidates_right = [right_part]
             if left_part.endswith("ā"):
@@ -124,12 +126,19 @@ class SandhiSplitterTokenizer:
                 candidates_left.append(left_part[:-1] + "a")
                 candidates_right.append("u" + right_part)
                 candidates_right.append("ū" + right_part)
+            elif left_part.endswith("y"):
+                candidates_left.append(left_part[:-1] + "i")
+                candidates_right.append(right_part)
+            elif left_part.endswith("s") or left_part.endswith("ś") or left_part.endswith("ṣ"):
+                candidates_left.append(left_part[:-1] + "ḥ")
+                candidates_right.append(right_part)
 
             for cl in candidates_left:
                 if cl in self.table.word_to_vec or self.tokenizer.stem_map.get(cl):
                     for cr in candidates_right:
-                        if cr in self.table.word_to_vec or self.tokenizer.stem_map.get(cr):
-                            return [cl, cr]
+                        res_right = self.unmerge_sandhi(cr, max_depth - 1)
+                        if all(w in self.table.word_to_vec or self.tokenizer.stem_map.get(w) for w in res_right):
+                            return [cl] + res_right
 
         return [continuous_word] # Fallback unsplit
 

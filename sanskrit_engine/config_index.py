@@ -79,7 +79,9 @@ def populate_vocabularies(dhatu_filepath: str = None):
     # Initialize with core test words
     ROOT_VOCAB.update({
         "gam": 1, "han": 2, "dā": 3, "bhū": 4, 
-        "rāma": 5, "deva": 6, "avatāra": 7, "kṛ": 8, "pustaka": 9
+        "rāma": 5, "deva": 6, "avatāra": 7, "kṛ": 8, "pustaka": 9,
+        "karma": 101, "eva": 102, "adhikāra": 103, "te": 104, "mā": 105, "phala": 106, "kadācana": 107,
+        "dharma": 108, "kṣetra": 109, "kuru": 110, "yuyutsu": 111, "sañjaya": 112
     })
     
     # Defaults for core test words

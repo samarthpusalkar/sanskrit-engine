@@ -186,8 +186,17 @@ class TensorTokenizer:
                         tensor = [root_id, POS_VOCAB["avyaya"], 0, 0, 0, 0, 0, 0, 0, 0, 0]
             
             if tensor is None:
-                print(f"[!] ENCODER WARNING: Inverse Parser failed to strip suffix for '{word}'.")
-                tensor = [0] * self.default_dim
+                # Dynamic external / OOV word handling (Non-root words)
+                ext_id = 90000 + abs(hash(word)) % 10000
+                ROOT_VOCAB[word] = ext_id
+                REV_ROOT[ext_id] = word
+                self.stem_map[word] = ext_id
+                if self.default_dim == 5:
+                    tensor = [ext_id, POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
+                elif self.default_dim == 7:
+                    tensor = [0, ext_id, 0, POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
+                else:
+                    tensor = [ext_id, POS_VOCAB["noun"], 0, 0, 0, 1, 1, 1, GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
                 
             tensors.append(TensorCoordinate(tensor))
                 
@@ -230,7 +239,9 @@ class TensorTokenizer:
                 "pos": pos_str
             }
             
-            if pos_str == "noun":
+            if root_id >= 90000:
+                base_string = derived_stem
+            elif pos_str == "noun":
                 env["gender"] = REV_GENDER.get(f1, "masculine")
                 env["case"] = REV_CASE.get(f2, "nominative")
                 env["number"] = REV_NUMBER.get(f3, "singular")
