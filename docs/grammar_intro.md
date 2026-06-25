@@ -4,7 +4,7 @@ If you are a programmer, software engineer, or computer scientist exploring Sans
 
 Unlike many natural languages whose grammars evolved as organic tangles of historical exceptions, **Sanskrit grammar (*Vyākaraṇa*) functions almost exactly like a deterministic programming language and generative compiler.**
 
-Around 500 BCE, the ancient grammarian **Pāṇini** codified the language in the *Aṣṭādhyāyī*—a formal rule-based system of roughly 4,000 highly structured algorithmic rules (*sūtras*). When you learn how Sanskrit words are constructed, you aren't memorizing arbitrary vocabulary; you are tracing how structured rules generate complex surface forms from simple base roots.
+The revered sage and visionary grammarian **Pāṇini** codified the language in the *Aṣṭādhyāyī*—a formal rule-based system of roughly 4,000 highly structured algorithmic rules (*sūtras*). When you learn how Sanskrit words are constructed, you aren't memorizing arbitrary vocabulary; you are tracing how structured rules generate complex surface forms from simple base roots.
 
 ---
 
@@ -170,7 +170,7 @@ Instead of using 5 separate words with 5 separate case endings, Sanskrit allows 
 
 When you look at Sanskrit through a computational lens, you realize why representing it in code is so natural. Pāṇini's *Aṣṭādhyāyī* is widely considered by computer scientists to be the world's first formal system. 
 
-Long before modern computer science, Sanskrit grammar established:
+Sanskrit grammar natively established:
 * **Auxiliary Markers (*Anubandha*):** Compile-time metadata tags attached to roots and suffixes to dictate rule triggers.
 * **Context Inheritance (*Anuvṛtti*):** Lexical scoping rules where operational parameters flow down from previous statements to keep rules DRY.
 * **Deterministic Conflict Resolution (*Vipratiṣedha*):** Explicit heuristics for rule ordering and blocking when multiple rules match the same input simultaneously.
