@@ -248,7 +248,7 @@ class TensorTokenizer:
                 "pos": pos_str
             }
             
-            if root_id >= 90000:
+            if 90000 <= root_id <= 99999:
                 base_string = derived_stem
             elif pos_str == "noun":
                 env["gender"] = REV_GENDER.get(f1, "masculine")

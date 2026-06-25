@@ -97,8 +97,10 @@ class SandhiSplitterTokenizer:
         if word in self.table.word_to_vec or self.tokenizer.stem_map.get(word):
             return True
         encoded = self.tokenizer.encode(word)
-        if encoded and len(encoded) == 1 and 0 < encoded[0].vector[0] < 90000:
-            return True
+        if encoded and len(encoded) == 1:
+            cid = encoded[0].vector[0]
+            if cid > 0 and not (90000 <= cid <= 99999):
+                return True
         return False
 
     def unmerge_sandhi(self, continuous_word: str, max_depth: int = 4) -> List[str]:
