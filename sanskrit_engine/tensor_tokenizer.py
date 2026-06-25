@@ -114,54 +114,74 @@ class TensorTokenizer:
             "ti": (PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]),
             "te": (PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]),
             "si": (PERSON_VOCAB["second"], NUMBER_VOCAB["singular"]),
+            "se": (PERSON_VOCAB["second"], NUMBER_VOCAB["singular"]),
             "mi": (PERSON_VOCAB["first"], NUMBER_VOCAB["singular"]),
+            "maḥ": (PERSON_VOCAB["first"], NUMBER_VOCAB["plural"]),
         }
         suffix_map_noun = {
+            "asya": (CASE_VOCAB["genitive"], NUMBER_VOCAB["singular"]),
             "sya": (CASE_VOCAB["genitive"], NUMBER_VOCAB["singular"]),
             "am": (CASE_VOCAB["accusative"], NUMBER_VOCAB["singular"]),
+            "m": (CASE_VOCAB["accusative"], NUMBER_VOCAB["singular"]),
             "ḥ": (CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]),
             "ena": (CASE_VOCAB["instrumental"], NUMBER_VOCAB["singular"]),
+            "āya": (CASE_VOCAB["dative"], NUMBER_VOCAB["singular"]),
+            "āt": (CASE_VOCAB["ablative"], NUMBER_VOCAB["singular"]),
+            "e": (CASE_VOCAB["locative"], NUMBER_VOCAB["singular"]),
+            "au": (CASE_VOCAB["nominative"], NUMBER_VOCAB["dual"]),
+            "ābhyām": (CASE_VOCAB["instrumental"], NUMBER_VOCAB["dual"]),
+            "ayoḥ": (CASE_VOCAB["genitive"], NUMBER_VOCAB["dual"]),
+            "āḥ": (CASE_VOCAB["nominative"], NUMBER_VOCAB["plural"]),
             "aiḥ": (CASE_VOCAB["instrumental"], NUMBER_VOCAB["plural"]),
+            "ebhyaḥ": (CASE_VOCAB["dative"], NUMBER_VOCAB["plural"]),
+            "ānām": (CASE_VOCAB["genitive"], NUMBER_VOCAB["plural"]),
             "āni": (CASE_VOCAB["nominative"], NUMBER_VOCAB["plural"]),
             "āṇi": (CASE_VOCAB["nominative"], NUMBER_VOCAB["plural"]),
-            "e": (CASE_VOCAB["locative"], NUMBER_VOCAB["singular"]),
             "eṣu": (CASE_VOCAB["locative"], NUMBER_VOCAB["plural"]),
         }
+        upasargas = ("pra", "parā", "apa", "sam", "anu", "ava", "nis", "nir", "dus", "dur", "vi", "ā", "ni", "adhi", "api", "ati", "su", "ut", "abhi", "prati", "pari", "upa")
         
         for word in words:
             tensor = None
             
-            # 1. Try stripping Verb Suffixes
-            for suff, (pers, num) in suffix_map_verb.items():
+            # 1. Try stripping Noun Suffixes
+            for suff, (cas, num) in suffix_map_noun.items():
                 if word.endswith(suff):
                     stem = word[:-len(suff)]
-                    if stem.endswith("a"): stem = stem[:-1]
                     root_id = self.stem_map.get(stem)
                     if root_id:
+                        root_str = REV_ROOT.get(root_id, "")
+                        is_nominal = root_str not in DHATU_META
+                        derivation_id = 0 if is_nominal else DERIVATION_VOCAB.get("ghañ", 1)
+                        gender = GENDER_VOCAB["neuter"] if suff in ("am", "m", "āni", "āṇi") and is_nominal else GENDER_VOCAB["masculine"]
                         if self.default_dim == 5:
-                            tensor = [root_id, POS_VOCAB["verb"], TENSE_VOCAB["present"], pers, num]
+                            tensor = [root_id, POS_VOCAB["noun"], gender, cas, num]
                         elif self.default_dim == 7:
-                            tensor = [0, root_id, 0, POS_VOCAB["verb"], TENSE_VOCAB["present"], pers, num]
+                            tensor = [0, root_id, derivation_id, POS_VOCAB["noun"], gender, cas, num]
                         else:
-                            tensor = [root_id, POS_VOCAB["verb"], 0, 0, 0, TENSE_VOCAB["present"], pers, 1, 1, 1, num]
+                            tensor = [root_id, POS_VOCAB["noun"], 0, derivation_id, 0, 1, 1, 1, gender, cas, num]
                         break
-            
-            # 2. Try stripping Noun Suffixes
+
+            # 2. Try stripping Verb Suffixes
             if tensor is None:
-                for suff, (cas, num) in suffix_map_noun.items():
+                for suff, (pers, num) in suffix_map_verb.items():
                     if word.endswith(suff):
                         stem = word[:-len(suff)]
+                        if stem.endswith("a"): stem = stem[:-1]
                         root_id = self.stem_map.get(stem)
+                        if not root_id:
+                            for u in upasargas:
+                                if stem.startswith(u):
+                                    sub = stem[len(u):]
+                                    root_id = self.stem_map.get(sub)
+                                    if root_id: break
                         if root_id:
-                            is_nominal = root_id in [5, 6, 7, 9] or root_id in [ROOT_VOCAB.get("rāma"), ROOT_VOCAB.get("deva"), ROOT_VOCAB.get("avatāra")]
-                            derivation_id = 0 if is_nominal else DERIVATION_VOCAB.get("ghañ", 1)
-                            gender = GENDER_VOCAB["neuter"] if suff == "am" and is_nominal else GENDER_VOCAB["masculine"]
                             if self.default_dim == 5:
-                                tensor = [root_id, POS_VOCAB["noun"], gender, cas, num]
+                                tensor = [root_id, POS_VOCAB["verb"], TENSE_VOCAB["present"], pers, num]
                             elif self.default_dim == 7:
-                                tensor = [0, root_id, derivation_id, POS_VOCAB["noun"], gender, cas, num]
+                                tensor = [0, root_id, 0, POS_VOCAB["verb"], TENSE_VOCAB["present"], pers, num]
                             else:
-                                tensor = [root_id, POS_VOCAB["noun"], 0, derivation_id, 0, 1, 1, 1, gender, cas, num]
+                                tensor = [root_id, POS_VOCAB["verb"], 0, 0, 0, TENSE_VOCAB["present"], pers, 1, 1, 1, num]
                             break
             if tensor is None:
                 # Direct match

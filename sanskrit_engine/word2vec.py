@@ -56,34 +56,31 @@ class RainbowTableGenerator:
         return self.vec_to_word.get(norm_vec)
 
     def populate_common_corpus(self, tokenizer: TensorTokenizer) -> int:
-        """Populates cache with standard verbal conjugations and nominal declensions."""
+        """Dynamically populates cache with verbal conjugations and nominal declensions from database."""
         count = 0
-        # Sample Verbal Roots
-        for r_str, r_id in list(ROOT_VOCAB.items())[:50]:
-            for p_name, p_id in list(PERSON_VOCAB.items())[:3]:
-                for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
-                    vec = [r_id, POS_VOCAB.get("verb", 2), 0, 0, 0, TENSE_VOCAB.get("present", 1), p_id, 1, 1, 1, n_id]
-                    coord = TensorCoordinate(vec)
-                    try:
-                        surf = tokenizer.decode([coord])
-                        self.insert(surf, coord)
-                        count += 1
-                    except Exception:
-                        pass
-                        
-        # Sample Nominal Roots
-        for n_str in ["rāma", "deva", "avatāra", "pustaka"]:
-            r_id = ROOT_VOCAB.get(n_str, 1)
-            for c_name, c_id in list(CASE_VOCAB.items())[:8]:
-                for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
-                    vec = [r_id, POS_VOCAB.get("noun", 1), 0, 0, 0, 1, 1, 1, GENDER_VOCAB.get("masculine", 1), c_id, n_id]
-                    coord = TensorCoordinate(vec)
-                    try:
-                        surf = tokenizer.decode([coord])
-                        self.insert(surf, coord)
-                        count += 1
-                    except Exception:
-                        pass
+        for r_str, r_id in list(ROOT_VOCAB.items())[:200]:
+            if r_str in DHATU_META:
+                for p_name, p_id in list(PERSON_VOCAB.items())[:3]:
+                    for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
+                        vec = [r_id, POS_VOCAB.get("verb", 2), 0, 0, 0, TENSE_VOCAB.get("present", 1), p_id, 1, 1, 1, n_id]
+                        coord = TensorCoordinate(vec)
+                        try:
+                            surf = tokenizer.decode([coord])
+                            self.insert(surf, coord)
+                            count += 1
+                        except Exception:
+                            pass
+            else:
+                for c_name, c_id in list(CASE_VOCAB.items())[:8]:
+                    for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
+                        vec = [r_id, POS_VOCAB.get("noun", 1), 0, 0, 0, 1, 1, 1, GENDER_VOCAB.get("masculine", 1), c_id, n_id]
+                        coord = TensorCoordinate(vec)
+                        try:
+                            surf = tokenizer.decode([coord])
+                            self.insert(surf, coord)
+                            count += 1
+                        except Exception:
+                            pass
         return count
 
 
