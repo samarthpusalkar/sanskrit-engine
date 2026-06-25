@@ -16,7 +16,7 @@ from sanskrit_engine.rules import Condition, Operation
 from sanskrit_engine.dataset import generate_jsonl
 from sanskrit_engine.enforcer import RuleEnforcer
 from sanskrit_engine.lexicon import NounEntry, VerbEntry
-from sanskrit_engine.morphology import RuleBasedMorphology
+from sanskrit_engine.morphology import GenerativePaniniMorphology, RuleBasedMorphology
 from sanskrit_engine.preprocessor import hydrate_rule_config
 from sanskrit_engine.validator import validate_fixture
 from sanskrit_engine.pratyahara import PratyaharaResolver
@@ -372,4 +372,12 @@ def test_tripadi_firewall_one_way_execution() -> None:
     engine = Engine([r_tripadi, r_sapada])
     res = engine.process([Token("s")])
     assert res.text == "ṣ"
+
+
+def test_generative_morphology_config_driven() -> None:
+    rules = load_rules("data/rules/panini_ir_grammar.json")
+    gen_morph = GenerativePaniniMorphology(rules)
+    lakshmana = NounEntry("lakṣmaṇa", "masculine", "Lakshmana")
+    res_dual = gen_morph.decline(lakshmana, "nominative", "dual")
+    assert res_dual.text == "lakṣmaṇau"
 

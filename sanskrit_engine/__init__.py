@@ -17,7 +17,7 @@ from .engine import Engine, EngineResult
 from .enforcer import EnforcementIssue, EnforcementResult, RuleEnforcer
 from .generator import GeneratedSentence, SanskritGenerator, SentenceSpec
 from .lexicon import NounEntry, VerbEntry
-from .morphology import GeneratedForm, RuleBasedMorphology, TemplateMorphology
+from .morphology import GeneratedForm, GenerativePaniniMorphology, RuleBasedMorphology, TemplateMorphology
 from .loader import load_rules
 from .panini_parser import PaniniCorpusParser, parse_all_ashtadhyayi_rules
 from .parser import ParseNode, ParseResult, SanskritParser
@@ -41,6 +41,7 @@ __all__ = [
     "EnforcementResult",
     "GeneratedSentence",
     "GeneratedForm",
+    "GenerativePaniniMorphology",
     "GrammarEngine",
     "NiyamaRule",
     "NounEntry",

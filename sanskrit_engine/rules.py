@@ -18,6 +18,7 @@ OperationType = Literal[
     "add_tag",
     "remove_tag",
     "set_feature",
+    "insert_affix",
     "noop",
 ]
 

@@ -1,0 +1,314 @@
+{
+  "rules": [
+    {
+      "id": "4.1.2.nom.sg",
+      "name": "Sup Nominative Singular introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "nominative", "number": "singular"}}},
+      "operation": {"type": "insert_affix", "text": "su", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.nom.du",
+      "name": "Sup Nominative Dual introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "nominative", "number": "dual"}}},
+      "operation": {"type": "insert_affix", "text": "au", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.nom.pl",
+      "name": "Sup Nominative Plural introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "nominative", "number": "plural"}}},
+      "operation": {"type": "insert_affix", "text": "jas", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.acc.sg",
+      "name": "Sup Accusative Singular introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "accusative", "number": "singular"}}},
+      "operation": {"type": "insert_affix", "text": "am", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.acc.du",
+      "name": "Sup Accusative Dual introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "accusative", "number": "dual"}}},
+      "operation": {"type": "insert_affix", "text": "au", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.acc.pl",
+      "name": "Sup Accusative Plural introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "accusative", "number": "plural"}}},
+      "operation": {"type": "insert_affix", "text": "śas", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.inst.sg",
+      "name": "Sup Instrumental Singular introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "instrumental", "number": "singular"}}},
+      "operation": {"type": "insert_affix", "text": "ṭā", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.inst.pl",
+      "name": "Sup Instrumental Plural introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "instrumental", "number": "plural"}}},
+      "operation": {"type": "insert_affix", "text": "bhis", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.loc.pl",
+      "name": "Sup Locative Plural introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "locative", "number": "plural"}}},
+      "operation": {"type": "insert_affix", "text": "sup", "tag": "sup"}
+    },
+    {
+      "id": "3.4.78.pres.3sg",
+      "name": "Tin Present Third Singular introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "verb_stem", "feature_equals": {"pos": "verb", "tense": "present", "person": "third", "number": "singular"}}},
+      "operation": {"type": "insert_affix", "text": "tip", "tag": "tin"}
+    },
+    {
+      "id": "3.4.78.pres.3pl",
+      "name": "Tin Present Third Plural introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "verb_stem", "feature_equals": {"pos": "verb", "tense": "present", "person": "third", "number": "plural"}}},
+      "operation": {"type": "insert_affix", "text": "jhi", "tag": "tin"}
+    },
+    {
+      "id": "1.3.9.tip",
+      "name": "It-lopa: tip -> ti",
+      "type": "vidhi",
+      "priority": 90,
+      "conditions": {"target": {"tag": "tin", "text": "tip"}},
+      "operation": {"type": "replace_text", "text": "ti"}
+    },
+    {
+      "id": "1.3.9.jhi",
+      "name": "Jhontah: jhi -> anti",
+      "type": "vidhi",
+      "priority": 90,
+      "conditions": {"target": {"tag": "tin", "text": "jhi"}},
+      "operation": {"type": "replace_text", "text": "anti"}
+    },
+    {
+      "id": "1.3.9.su",
+      "name": "It-lopa: su -> s",
+      "type": "vidhi",
+      "priority": 90,
+      "conditions": {"target": {"tag": "sup", "text": "su"}},
+      "operation": {"type": "replace_text", "text": "s"}
+    },
+    {
+      "id": "1.3.9.sup",
+      "name": "It-lopa: sup -> su",
+      "type": "vidhi",
+      "priority": 90,
+      "conditions": {"target": {"tag": "sup", "text": "sup"}},
+      "operation": {"type": "replace_text", "text": "su"}
+    },
+    {
+      "id": "1.3.9.jas",
+      "name": "It-lopa: jas -> as",
+      "type": "vidhi",
+      "priority": 90,
+      "conditions": {"target": {"tag": "sup", "text": "jas"}},
+      "operation": {"type": "replace_text", "text": "as"}
+    },
+    {
+      "id": "7.1.12.ta_ena_r",
+      "name": "Ta to ena (with r in stem)",
+      "type": "vidhi",
+      "priority": 85,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun"}, "text_suffix": "a", "text_contains": "r"},
+        "right": {"tag": "sup", "feature_equals": {"case": "instrumental", "number": "singular"}}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "a", "new": "eṇa", "right_old": "ṭā", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "7.1.12.ta_ena",
+      "name": "Ta to ena",
+      "type": "vidhi",
+      "priority": 80,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun"}, "text_suffix": "a"},
+        "right": {"tag": "sup", "feature_equals": {"case": "instrumental", "number": "singular"}}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "a", "new": "ena", "right_old": "ṭā", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "7.1.9.bhis_ais",
+      "name": "Bhis to aih",
+      "type": "vidhi",
+      "priority": 80,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun"}, "text_suffix": "a"},
+        "right": {"tag": "sup", "feature_equals": {"case": "instrumental", "number": "plural"}}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "a", "new": "aiḥ", "right_old": "bhis", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "7.1.20.neut_nom_sg",
+      "name": "Neuter a-stem nom sg to am",
+      "type": "vidhi",
+      "priority": 85,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "gender": "neuter"}, "text_suffix": "a"},
+        "right": {"tag": "sup", "feature_equals": {"case": "nominative", "number": "singular"}}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "a", "new": "am", "right_old": "s", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "7.1.20.neut_nom_pl",
+      "name": "Neuter a-stem nom pl to ani",
+      "type": "vidhi",
+      "priority": 85,
+      "conditions": {
+        "target": {"feature_equals": {"pos": "noun", "gender": "neuter"}, "text_suffix": "a"},
+        "right": {"tag": "sup", "feature_equals": {"case": "nominative", "number": "plural"}}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "a", "new": "āni", "right_old": "as", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "6.1.88.vrddhi_au",
+      "name": "Vrddhireci: a + au -> au",
+      "type": "vidhi",
+      "priority": 80,
+      "conditions": {
+        "target": {"text_suffix": "a"},
+        "right": {"text_prefix": "au"}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "a", "new": "au", "right_old": "au", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "6.1.88.vrddhi_au_aa",
+      "name": "Vrddhireci: aa + au -> au",
+      "type": "vidhi",
+      "priority": 80,
+      "conditions": {
+        "target": {"text_suffix": "ā"},
+        "right": {"text_prefix": "au"}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "ā", "new": "au", "right_old": "au", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "6.1.102.savarna_jas",
+      "name": "Purvasavarna: a + as -> ah",
+      "type": "vidhi",
+      "priority": 80,
+      "conditions": {
+        "target": {"feature_equals": {"gender": "masculine"}, "text_suffix": "a"},
+        "right": {"tag": "sup", "text": "as"}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "a", "new": "āḥ", "right_old": "as", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "6.1.107.am_acc",
+      "name": "Ami purvah: a + am -> am",
+      "type": "vidhi",
+      "priority": 80,
+      "conditions": {
+        "target": {"text_suffix": "a"},
+        "right": {"tag": "sup", "text": "am"}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "a", "new": "am", "right_old": "am", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "6.1.97.ato_gune",
+      "name": "Ato gune: a + anti -> anti",
+      "type": "vidhi",
+      "priority": 80,
+      "conditions": {
+        "target": {"text_suffix": "a"},
+        "right": {"tag": "tin", "text": "anti"}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "a", "new": "anti", "right_old": "anti", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "8.2.66.visarga",
+      "name": "Visarga at word end: s -> h",
+      "type": "vidhi",
+      "priority": 10,
+      "conditions": {"target": {"text_suffix": "s"}},
+      "operation": {"type": "replace_suffix", "old": "s", "new": "ḥ"}
+    },
+    {
+      "id": "3.3.10.tumun",
+      "name": "Tumun affix introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "root", "feature_equals": {"derivation": "tumun"}}},
+      "operation": {"type": "insert_affix", "text": "tum", "tag": "krdanta"}
+    },
+    {
+      "id": "3.4.21.ktva",
+      "name": "Ktva affix introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "root", "feature_equals": {"derivation": "ktvā"}}},
+      "operation": {"type": "insert_affix", "text": "tvā", "tag": "krdanta"}
+    },
+    {
+      "id": "3.3.18.ghan",
+      "name": "Ghan affix introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "root", "feature_equals": {"derivation": "ghañ"}}},
+      "operation": {"type": "insert_affix", "text": "a", "tag": "krdanta"}
+    },
+    {
+      "id": "3.3.115.lyut",
+      "name": "Lyut affix introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "root", "feature_equals": {"derivation": "lyuṭ"}}},
+      "operation": {"type": "insert_affix", "text": "ana", "tag": "krdanta"}
+    },
+    {
+      "id": "8.2.23.mo_no",
+      "name": "Mo no dhatoh: m -> n before jhal (tum)",
+      "type": "vidhi",
+      "priority": 80,
+      "conditions": {"target": {"text_suffix": "m"}, "right": {"text_prefix": "t"}},
+      "operation": {"type": "replace_suffix", "old": "m", "new": "n"}
+    },
+    {
+      "id": "6.4.37.gam_ktva",
+      "name": "Anunasika lopa: gam + tva -> gatva",
+      "type": "vidhi",
+      "priority": 85,
+      "conditions": {"target": {"text": "gam"}, "right": {"text": "tvā"}},
+      "operation": {"type": "rewrite_boundary", "old": "am", "new": "a", "right_old": "tvā", "right_new": "tvā", "remove_right": false}
+    },
+    {
+      "id": "7.3.84.kr_tum",
+      "name": "Sarvadhatukardhadhatukayoh guna: kr + tum -> kartum",
+      "type": "vidhi",
+      "priority": 85,
+      "conditions": {"target": {"text": "kṛ"}, "right": {"text": "tum"}},
+      "operation": {"type": "rewrite_boundary", "old": "ṛ", "new": "ar", "right_old": "tum", "right_new": "tum", "remove_right": false}
+    },
+    {
+      "id": "7.2.116.ram_ghan",
+      "name": "Ata upadhayah vrddhi: ram + a -> rama",
+      "type": "vidhi",
+      "priority": 85,
+      "conditions": {"target": {"text": "ram"}, "right": {"tag": "krdanta", "text": "a"}},
+      "operation": {"type": "rewrite_boundary", "old": "a", "new": "ā", "right_old": "a", "right_new": "", "remove_right": true}
+    }
+  ]
+}

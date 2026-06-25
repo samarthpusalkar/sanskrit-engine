@@ -217,5 +217,14 @@ class Engine:
                 raise ValueError(f"Rule {rule.id} set_feature missing feature")
             token.features[op.feature] = op.value
             return
+        if op.type == "insert_affix":
+            if op.text is None:
+                raise ValueError(f"Rule {rule.id} insert_affix missing text")
+            new_token = Token(op.text, tags={op.tag or "affix"}, features=dict(token.features))
+            token.tags.discard("stem")
+            token.tags.discard("verb_stem")
+            token.tags.add("pada_stem")
+            tokens.insert(index + 1, new_token)
+            return
 
         raise ValueError(f"Unsupported operation: {op.type}")

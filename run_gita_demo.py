@@ -13,8 +13,8 @@ import os
 import sys
 
 from sanskrit_engine import (
+    GenerativePaniniMorphology,
     RainbowTableGenerator,
-    RuleBasedMorphology,
     SandhiSplitterTokenizer,
     TensorCoordinate,
     TensorTokenizer,
@@ -29,8 +29,8 @@ def run_demo():
 
     # Initialize Engine Components
     print("[+] Hydrating Pāṇinian Rule Packs...")
-    rules = load_rules("data/rules/subanta.json") + load_rules("data/rules/tinanta.json")
-    morphology = RuleBasedMorphology(rules)
+    rules = load_rules("data/rules/panini_ir_grammar.json")
+    morphology = GenerativePaniniMorphology(rules)
     tokenizer = TensorTokenizer(morphology, default_dim=11)
     
     print("[+] Building FST Trie Rainbow Cache...")
