@@ -71,9 +71,26 @@ class RainbowTableGenerator:
                         except Exception:
                             pass
             else:
-                for c_name, c_id in list(CASE_VOCAB.items())[:8]:
-                    for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
-                        vec = [r_id, POS_VOCAB.get("noun", 1), 0, 0, 0, 0, 0, 0, GENDER_VOCAB.get("masculine", 1), c_id, n_id]
+                is_avyaya = r_str in ("tu", "ca", "vā", "na", "eva", "api", "iti", "hi", "mā", "saha", "alam")
+                gender = GENDER_VOCAB.get("masculine", 1)
+                try:
+                    from sanskrit_engine.pratipadika_db import get_pratipadika
+                    pr = get_pratipadika(r_str)
+                    if pr:
+                        if pr.get('paninian_meta', {}).get('is_avyaya'): is_avyaya = True
+                        gl = pr.get('pos_flags', {}).get('allowed_genders', [])
+                        if 'N' in gl: gender = GENDER_VOCAB.get("neuter", 3)
+                        elif 'F' in gl: gender = GENDER_VOCAB.get("feminine", 2)
+                except Exception:
+                    pass
+                if is_avyaya:
+                    vec = [r_id, POS_VOCAB.get("avyaya", 6), 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    self.insert(r_str, TensorCoordinate(vec))
+                    count += 1
+                else:
+                    for c_name, c_id in list(CASE_VOCAB.items())[:8]:
+                        for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
+                            vec = [r_id, POS_VOCAB.get("noun", 1), 0, 0, 0, 0, 0, 0, gender, c_id, n_id]
                         coord = TensorCoordinate(vec)
                         try:
                             surf = tokenizer.decode([coord])
@@ -167,9 +184,12 @@ class SandhiSplitterTokenizer:
                 candidates_right.append("i" + right_part)
                 candidates_right.append("ī" + right_part)
             elif left_part.endswith("o"):
+                candidates_left.append(left_part[:-1] + "aḥ")
                 candidates_left.append(left_part[:-1] + "a")
+                candidates_right.append("a" + right_part)
                 candidates_right.append("u" + right_part)
                 candidates_right.append("ū" + right_part)
+                candidates_right.append(right_part)
             elif left_part.endswith("ai"):
                 candidates_left.append(left_part[:-2] + "a")
                 candidates_left.append(left_part[:-2] + "ā")
@@ -178,7 +198,7 @@ class SandhiSplitterTokenizer:
             elif left_part.endswith("y"):
                 candidates_left.append(left_part[:-1] + "i")
                 candidates_right.append(right_part)
-            elif left_part.endswith("s") or left_part.endswith("ś") or left_part.endswith("ṣ"):
+            elif left_part.endswith("s") or left_part.endswith("ś") or left_part.endswith("ṣ") or left_part.endswith("r"):
                 candidates_left.append(left_part[:-1] + "ḥ")
                 candidates_right.append(right_part)
 
@@ -197,7 +217,8 @@ class SandhiSplitterTokenizer:
 
     def tokenize_to_vectors(self, continuous_text: str) -> List[TensorCoordinate]:
         """Splits continuous Sanskrit sentence into 11D morphological coordinates."""
-        raw_words = continuous_text.split()
+        cleaned_text = continuous_text.replace("’", "a").replace("'", "a").replace("'", "a").strip()
+        raw_words = cleaned_text.split()
         split_words: List[str] = []
         for rw in raw_words:
             split_words.extend(self.unmerge_sandhi(rw))

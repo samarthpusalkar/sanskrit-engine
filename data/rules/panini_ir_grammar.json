@@ -239,6 +239,28 @@
       "operation": {"type": "rewrite_boundary", "old": "a", "new": "anti", "right_old": "anti", "right_new": "", "remove_right": true}
     },
     {
+      "id": "6.1.68.su_lopa",
+      "name": "Halnyabbhyo dirghat sutisyaprktam hal: vasudha + su -> vasudha",
+      "type": "vidhi",
+      "priority": 85,
+      "conditions": {
+        "target": {"text_suffix": "ā"},
+        "right": {"tag": "sup", "text": "su"}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "ā", "new": "ā", "right_old": "su", "right_new": "", "remove_right": true}
+    },
+    {
+      "id": "6.1.68.su_lopa_i",
+      "name": "Halnyabbhyo dirghat sutisyaprktam hal: nadi + su -> nadi",
+      "type": "vidhi",
+      "priority": 85,
+      "conditions": {
+        "target": {"text_suffix": "ī"},
+        "right": {"tag": "sup", "text": "su"}
+      },
+      "operation": {"type": "rewrite_boundary", "old": "ī", "new": "ī", "right_old": "su", "right_new": "", "remove_right": true}
+    },
+    {
       "id": "8.2.66.visarga",
       "name": "Visarga at word end: s -> h",
       "type": "vidhi",
