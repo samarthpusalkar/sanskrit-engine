@@ -75,103 +75,83 @@ def populate_vocabularies(dhatu_filepath: str = None):
     Dynamically loads the massive Dhatupatha (and opaque nouns) into the ROOT_VOCAB.
     """
     global ROOT_VOCAB, REV_ROOT, DHATU_META
-    
-    # Initialize with core test words
-    ROOT_VOCAB.update({
-        "gam": 1, "han": 2, "dā": 3, "bhū": 4, 
-        "rāma": 5, "deva": 6, "avatāra": 7, "kṛ": 8, "pustaka": 9,
-        "karma": 101, "eva": 102, "adhikāra": 103, "te": 104, "mā": 105, "phala": 106, "kadācana": 107,
-        "dharma": 108, "kṣetra": 109, "kuru": 110, "yuyutsu": 111, "sañjaya": 112,
-        "udyama": 113, "hi": 114, "sidh": 115, "kārya": 116, "na": 117, "manoratha": 118,
-        "ca": 119, "tu": 120, "api": 121, "iti": 122, "tatra": 123, "atra": 124, "yatra": 125,
-        "supta": 126, "siṃha": 127, "praviś": 128, "mukha": 129, "mṛga": 130
-    })
-    
-    # Defaults for core test words
-    DHATU_META.update({
-        "gam": {"gana": "1", "pada": "P", "settva": "S"},
-        "han": {"gana": "2", "pada": "P", "settva": "A"},
-        "dā": {"gana": "3", "pada": "U", "settva": "A"},
-        "bhū": {"gana": "1", "pada": "P", "settva": "S"},
-        "kṛ": {"gana": "8", "pada": "U", "settva": "A"},
-        "sidh": {"gana": "4", "pada": "P", "settva": "S"},
-        "praviś": {"gana": "6", "pada": "P", "settva": "S"},
-    })
-    
-    # Auto-load massive optimized databases from data/ directory
+    ROOT_VOCAB.clear()
+    REV_ROOT.clear()
+    DHATU_META.clear()
+
+    # 1. Load Prātipadikas from indexed SQLite database / fallback JSON
+    try:
+        from sanskrit_engine.pratipadika_db import _DEFAULT_DB
+        _DEFAULT_DB.load_into_vocab(ROOT_VOCAB, REV_ROOT)
+    except Exception as e:
+        pass
+
+    # 2. Load Dhātus from JSON Dhātupāṭha database
     base_data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
-    opt_dhatu = os.path.join(base_data_dir, "optimized_dhatu.json")
-    opt_prat = os.path.join(base_data_dir, "optimized_pratipadika.json")
-    
+    opt_dhatu = dhatu_filepath or os.path.join(base_data_dir, "optimized_dhatu.json")
+    if not os.path.exists(opt_dhatu):
+        opt_dhatu = os.path.join(base_data_dir, "dhatu_data.json")
+
     if os.path.exists(opt_dhatu):
         try:
             with open(opt_dhatu, "r", encoding="utf-8") as f:
-                for item in json.load(f):
-                    cid = item.get("vector_meta", {}).get("concept_id")
-                    morph = item.get("morphology", {})
-                    iast = morph.get("dhatu_iast")
-                    if cid and iast and iast not in ROOT_VOCAB:
-                        ROOT_VOCAB[iast] = cid
-                        flags = item.get("compiler_flags", {})
-                        DHATU_META[iast] = {
-                            "gana": str(flags.get("gana", 1)),
-                            "pada": flags.get("pada", "P"),
-                            "settva": flags.get("settva", "S")
-                        }
-        except Exception:
-            pass
-
-    if os.path.exists(opt_prat):
-        try:
-            with open(opt_prat, "r", encoding="utf-8") as f:
-                for item in json.load(f):
-                    cid = item.get("vector_meta", {}).get("concept_id")
-                    morph = item.get("morphology", {})
-                    iast = morph.get("base_iast")
-                    if cid and iast and iast not in ROOT_VOCAB:
-                        ROOT_VOCAB[iast] = cid
-        except Exception:
-            pass
-
-    # Load from dynamic JSON database if available
-    if dhatu_filepath and os.path.exists(dhatu_filepath):
-        try:
-            from indic_transliteration import sanscript
-        except ImportError:
-            print("Warning: indic_transliteration not installed. Dhatus will not be loaded.")
-            return
-
-        with open(dhatu_filepath, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            dhatu_list = data.get("data", [])
-            max_id = max(ROOT_VOCAB.values()) if ROOT_VOCAB else 0
-            
-            for item in dhatu_list:
-                d_name_devanagari = item.get("dhatu")
-                aupadeshik_dev = item.get("aupadeshik", "")
+                raw_data = json.load(f)
+                dhatu_list = raw_data if isinstance(raw_data, list) else raw_data.get("data", [])
                 
-                if d_name_devanagari:
-                    d_name_iast = sanscript.transliterate(d_name_devanagari, sanscript.DEVANAGARI, sanscript.IAST)
-                    aupadeshik_iast = sanscript.transliterate(aupadeshik_dev, sanscript.DEVANAGARI, sanscript.IAST) if aupadeshik_dev else d_name_iast
-                    
-                    if d_name_iast not in ROOT_VOCAB:
-                        max_id += 1
-                        ROOT_VOCAB[d_name_iast] = max_id
-                    ROOT_VOCAB[d_name_devanagari] = ROOT_VOCAB[d_name_iast]
-                    
-                    if aupadeshik_iast.endswith("ñ"): calc_pada = "U"
-                    elif aupadeshik_iast.endswith("ṅ"): calc_pada = "A"
-                    else: calc_pada = item.get("pada", "P")
-                        
-                    DHATU_META[d_name_iast] = {
-                        "gana": item.get("gana", "1"),
-                        "pada": calc_pada,
-                        "settva": item.get("settva", "S")
-                    }
-                    DHATU_META[d_name_devanagari] = DHATU_META[d_name_iast]
-                    
-    # Generate Reverse Index mapping ID -> IAST string
-    REV_ROOT.clear()
+                try:
+                    from indic_transliteration import sanscript
+                except ImportError:
+                    sanscript = None
+
+                max_id = max(ROOT_VOCAB.values()) if ROOT_VOCAB else 10000
+
+                for item in dhatu_list:
+                    if "morphology" in item:
+                        cid = item.get("vector_meta", {}).get("concept_id")
+                        morph = item.get("morphology", {})
+                        iast = morph.get("dhatu_iast")
+                        dev = morph.get("dhatu_dev")
+                        slp1 = morph.get("dhatu_slp1")
+                        if cid and iast:
+                            ROOT_VOCAB[iast] = cid
+                            if dev: ROOT_VOCAB[dev] = cid
+                            if slp1: ROOT_VOCAB[slp1] = cid
+                            REV_ROOT[cid] = iast
+                            flags = item.get("compiler_flags", {})
+                            DHATU_META[iast] = {
+                                "gana": str(flags.get("gana", 1)),
+                                "pada": flags.get("pada", "P"),
+                                "settva": flags.get("settva", "S")
+                            }
+                            if dev: DHATU_META[dev] = DHATU_META[iast]
+                    else:
+                        d_name_dev = item.get("dhatu")
+                        aup_dev = item.get("aupadeshik", "")
+                        if d_name_dev:
+                            if sanscript:
+                                d_iast = sanscript.transliterate(d_name_dev, sanscript.DEVANAGARI, sanscript.IAST)
+                                aup_iast = sanscript.transliterate(aup_dev, sanscript.DEVANAGARI, sanscript.IAST) if aup_dev else d_iast
+                            else:
+                                d_iast = d_name_dev
+                                aup_iast = aup_dev
+                                
+                            if d_iast not in ROOT_VOCAB:
+                                max_id += 1
+                                ROOT_VOCAB[d_iast] = max_id
+                            ROOT_VOCAB[d_name_dev] = ROOT_VOCAB[d_iast]
+                            REV_ROOT[ROOT_VOCAB[d_iast]] = d_iast
+                            
+                            pada = "U" if aup_iast.endswith("ñ") else ("A" if aup_iast.endswith("ṅ") else item.get("pada", "P"))
+                            DHATU_META[d_iast] = {
+                                "gana": str(item.get("gana", "1")),
+                                "pada": pada,
+                                "settva": item.get("settva", "S")
+                            }
+                            DHATU_META[d_name_dev] = DHATU_META[d_iast]
+        except Exception as e:
+            pass
+
+    # Ensure REV_ROOT mapping exists for every loaded vocabulary token
     for k, v in ROOT_VOCAB.items():
         if v not in REV_ROOT:
             REV_ROOT[v] = k

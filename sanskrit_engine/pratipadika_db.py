@@ -46,6 +46,31 @@ class PratipadikaDatabase:
                         self._in_memory_fallback[slp1] = e
         return self._in_memory_fallback
 
+    def load_into_vocab(self, root_vocab: Dict[str, int], rev_root: Dict[int, str]) -> None:
+        """Loads all indexed nominal stems into the runtime vocabulary dictionaries."""
+        conn = self._get_connection()
+        if conn:
+            cur = conn.cursor()
+            cur.execute("SELECT concept_id, base_iast, base_dev, base_slp1 FROM pratipadika_index")
+            for cid, iast, dev, slp1 in cur.fetchall():
+                if iast: root_vocab[iast] = cid
+                if dev: root_vocab[dev] = cid
+                if slp1: root_vocab[slp1] = cid
+                rev_root[cid] = iast or slp1 or dev
+            return
+            
+        fallback = self._load_fallback()
+        for slp1, entry in fallback.items():
+            cid = entry.get("vector_meta", {}).get("concept_id")
+            morph = entry.get("morphology", {})
+            iast = morph.get("base_iast")
+            dev = morph.get("base_dev")
+            if cid:
+                if iast: root_vocab[iast] = cid
+                if dev: root_vocab[dev] = cid
+                if slp1: root_vocab[slp1] = cid
+                rev_root[cid] = iast or slp1 or dev
+
     def get_pratipadika(self, base: str) -> Dict[str, Any] | None:
         """
         Retrieves a Prātipadika schema dictionary by exact SLP1, Devanagari, or IAST string.
