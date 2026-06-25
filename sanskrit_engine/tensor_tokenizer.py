@@ -1,10 +1,12 @@
 from __future__ import annotations
+import os
 from typing import List, Dict, Any, Union, Optional
 from .morphology import RuleBasedMorphology
 from .lexicon import NounEntry, VerbEntry
 from .parser import SanskritParser
 from .config_index import *
 from .rule_database import RuleDatabase
+from .tinganta_db import TingantaDB
 
 
 class TensorDelta:
@@ -73,6 +75,7 @@ class TensorTokenizer:
         self.rule_db = rule_db
         self.default_dim = default_dim
         self.stem_map: Dict[str, int] = {}
+        self.tinganta_db = TingantaDB()
         self._build_stem_map()
         
     def _build_stem_map(self) -> None:
@@ -149,6 +152,30 @@ class TensorTokenizer:
         for word in words:
             tensor = None
             
+            # Step 0: Direct tiṅanta.db lookup (covers ALL lakāras including Liṭ, Laṅ, Luṅ)
+            verb_hit = self.tinganta_db.lookup_verb_form(word)
+            if verb_hit:
+                cid = verb_hit['concept_id']
+                if self.default_dim == 5:
+                    tensor = [cid, POS_VOCAB['verb'], verb_hit['lakara'], verb_hit['purusa'], verb_hit['vacana']]
+                elif self.default_dim == 7:
+                    tensor = [0, cid, 0, POS_VOCAB['verb'], verb_hit['lakara'], verb_hit['purusa'], verb_hit['vacana']]
+                else:
+                    tensor = [cid, POS_VOCAB['verb'], 0, 0, 0, verb_hit['lakara'], verb_hit['purusa'], 1, 1, 1, verb_hit['vacana']]
+            
+            # Step 0b: Kṛdanta lookup
+            if tensor is None:
+                krd_hit = self.tinganta_db.lookup_krdanta(word)
+                if krd_hit:
+                    cid = krd_hit['concept_id']
+                    deriv = krd_hit['derivation']
+                    if self.default_dim == 5:
+                        tensor = [cid, POS_VOCAB['noun'], 0, 0, 0]
+                    elif self.default_dim == 7:
+                        tensor = [0, cid, deriv, POS_VOCAB['noun'], 0, 0, 0]
+                    else:
+                        tensor = [cid, POS_VOCAB['noun'], 0, deriv, 0, 0, 0, 0, 0, 0, 0]
+
             # 1. Try stripping Noun Suffixes
             for suff, (cas, num) in suffix_map_noun.items():
                 if word.endswith(suff):
@@ -257,7 +284,11 @@ class TensorTokenizer:
             upasarga_str = REV_UPASARGA.get(upasarga_id, "") if upasarga_id != 0 else ""
             derivation_str = REV_DERIVATION.get(derivation_id, "none") if derivation_id != 0 else "none"
             
-            derived_stem = self.morphology.derive(root_str, derivation_str)
+            if derivation_id != 0:
+                surf_krd = self.tinganta_db.lookup_surface_krdanta(root_id, derivation_id)
+                derived_stem = surf_krd if surf_krd else self.morphology.derive(root_str, derivation_str)
+            else:
+                derived_stem = self.morphology.derive(root_str, derivation_str)
             base_string = derived_stem
             
             env = {
@@ -270,12 +301,15 @@ class TensorTokenizer:
             if 90000 <= root_id <= 99999:
                 base_string = derived_stem
             elif pos_str == "noun":
-                env["gender"] = REV_GENDER.get(f1, "masculine")
-                env["case"] = REV_CASE.get(f2, "nominative")
-                env["number"] = REV_NUMBER.get(f3, "singular")
-                
-                entry = NounEntry(derived_stem, env["gender"], "Unknown")
-                base_string = self.morphology.decline(entry, env["case"], env["number"]).text
+                if f1 == 0 and f2 == 0 and f3 == 0:
+                    base_string = derived_stem
+                else:
+                    env["gender"] = REV_GENDER.get(f1, "masculine")
+                    env["case"] = REV_CASE.get(f2, "nominative")
+                    env["number"] = REV_NUMBER.get(f3, "singular")
+                    
+                    entry = NounEntry(derived_stem, env["gender"], "Unknown")
+                    base_string = self.morphology.decline(entry, env["case"], env["number"]).text
                 
                 if upasarga_str:
                     base_string = upasarga_str + base_string
@@ -290,21 +324,23 @@ class TensorTokenizer:
                 env["gana"] = dhatu_meta["gana"]
                 env["settva"] = dhatu_meta.get("settva", "S")
                 
-                stem_exceptions = {"gam": "gaccha", "paś": "paśya", "sad": "sīda", "sthā": "tiṣṭha", "mnā": "mana", "dā": "dadā", "han": "han"}
-                if env["tense"] == "present":
+                # For non-present tenses, look up the pre-compiled surface form
+                if env["tense"] != "present":
+                    surf_verb = self.tinganta_db.lookup_surface_verb(root_id, f1, f2, f3)
+                    base_string = surf_verb if surf_verb else derived_stem
+                else:
+                    stem_exceptions = {"gam": "gaccha", "paś": "paśya", "sad": "sīda", "sthā": "tiṣṭha", "mnā": "mana", "dā": "dadā", "han": "han"}
                     present_stem = stem_exceptions.get(derived_stem)
                     if not present_stem:
                         if env["gana"] == "1": present_stem = derived_stem + "a"
                         elif env["gana"] == "4": present_stem = derived_stem + "ya"
                         else: present_stem = derived_stem
-                else:
-                    present_stem = derived_stem
-                    
-                entry = VerbEntry(derived_stem, present_stem, "Unknown")
-                try:
-                    base_string = self.morphology.conjugate(entry, env["person"], env["number"], env["tense"], env["voice"], env["settva"]).text
-                except ValueError:
-                    base_string = derived_stem
+                        
+                    entry = VerbEntry(derived_stem, present_stem, "Unknown")
+                    try:
+                        base_string = self.morphology.conjugate(entry, env["person"], env["number"], env["tense"], env["voice"], env["settva"]).text
+                    except ValueError:
+                        base_string = derived_stem
                     
                 if upasarga_str:
                     base_string = upasarga_str + base_string

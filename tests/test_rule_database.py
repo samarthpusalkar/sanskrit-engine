@@ -12,6 +12,7 @@ def test_config_index_dhatu_population():
         assert len(ROOT_VOCAB) > 1700
         # Check if a known random dhatu is inside
         assert "एध" in ROOT_VOCAB or "भू" in ROOT_VOCAB
+        populate_vocabularies()  # Restore standard vocabularies after test
     else:
         pytest.skip("dhatu_data.json not found locally to test massive population.")
 

@@ -17,18 +17,30 @@ POS_VOCAB = {
 
 DERIVATION_VOCAB = {
     "none": 0,
-    "ghañ": 1,   # Verb -> Noun (Action/Abstract)
-    "lyuṭ": 2,   # Verb -> Noun (Instrument/Action)
-    "ktvā": 3,   # Verb -> Avyaya (Gerund, having done)
-    "tumun": 4   # Verb -> Avyaya (Infinitive, to do)
+    "ghañ": 1,    # Verb -> Noun (Action/Abstract)
+    "lyuṭ": 2,    # Verb -> Noun (Instrument/Action)
+    "ktvā": 3,    # Verb -> Avyaya (Gerund, having done)
+    "tumun": 4,   # Verb -> Avyaya (Infinitive, to do)
+    "kta": 5,     # Verb -> Past Passive Participle
+    "ktavatu": 6, # Verb -> Active Past Participle
+    "śatṛ": 7,    # Verb -> Present Active Participle
+    "śānac": 8,   # Verb -> Present Middle Participle
+    "tavya": 9,   # Verb -> Gerundive (should be done)
+    "anīya": 10,  # Verb -> Gerundive (worthy of)
 }
 
 # --- Verbal Transformations ---
 TENSE_VOCAB = {
-    "present": 1,   # laṭ
-    "perfect": 2,   # liṭ
-    "future": 3,    # lṛṭ
-    "imperative": 4 # loṭ
+    "present": 1,      # laṭ
+    "perfect": 2,      # liṭ
+    "future": 3,       # lṛṭ
+    "imperative": 4,   # loṭ
+    "imperfect": 5,    # laṅ
+    "optative": 6,     # vidhiliṅ
+    "aorist": 7,       # luṅ
+    "conditional": 8,  # lṛṅ
+    "benedictive": 9,  # āśīrliṅ
+    "p_future": 10,    # luṭ (periphrastic future)
 }
 
 PERSON_VOCAB = {
@@ -168,3 +180,4 @@ REV_CASE = {v: k for k, v in CASE_VOCAB.items()}
 REV_GENDER = {v: k for k, v in GENDER_VOCAB.items()}
 REV_UPASARGA = {v: k for k, v in UPASARGA_VOCAB.items()}
 REV_DERIVATION = {v: k for k, v in DERIVATION_VOCAB.items()}
+
