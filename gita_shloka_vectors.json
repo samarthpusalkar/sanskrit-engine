@@ -1,36 +1,36 @@
 {
-  "shloka": "dharmak\u1e63etre kuruk\u1e63etre samavet\u0101 yuyutsava\u1e25",
+  "shloka": "udyamena hi sidhyanti k\u0101ry\u0101\u1e47i na manorathai\u1e25",
   "tensor_contract": "11D [Concept_ID, Class, Upasarga, Derivative, Role, Lak\u0101ra, Puru\u1e63a, Pada, Li\u1e45ga, Vibhakti, Vacana]",
   "vectors": [
     [
-      91548,
+      113,
       1,
       0,
+      1,
       0,
-      0,
       1,
       1,
       1,
       1,
-      1,
+      3,
       1
     ],
     [
-      90043,
-      1,
+      114,
+      6,
       0,
       0,
       0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
     ],
     [
-      99454,
-      1,
+      115,
+      2,
       0,
       0,
       0,
@@ -39,20 +39,46 @@
       1,
       1,
       1,
-      1
+      3
     ],
     [
-      94306,
+      116,
       1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      3
+    ],
+    [
+      14065,
+      6,
       0,
       0,
       0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      118,
+      1,
+      0,
+      1,
+      0,
       1,
       1,
       1,
       1,
-      1,
-      1
+      3,
+      3
     ]
   ]
 }

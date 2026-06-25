@@ -78,47 +78,28 @@ class TensorTokenizer:
     def _build_stem_map(self) -> None:
         """
         Builds a fast reverse Stem Map mapping base stems back to Root IDs.
+        Accelerated O(N) indexing without calling slow engine decoding per entry.
         """
         self.stem_map = {}
         for root_str, root_id in ROOT_VOCAB.items():
             self.stem_map[root_str] = root_id
-            
-            # Find Present Tense Stem
-            if self.default_dim == 5:
-                vec = [root_id, POS_VOCAB["verb"], TENSE_VOCAB["present"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]]
-            elif self.default_dim == 7:
-                vec = [0, root_id, 0, POS_VOCAB["verb"], TENSE_VOCAB["present"], PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]]
+            if root_str.endswith("a") or root_str.endswith("i") or root_str.endswith("u"):
+                self.stem_map[root_str[:-1]] = root_id
             else:
-                vec = [root_id, POS_VOCAB["verb"], 0, 0, 0, TENSE_VOCAB["present"], PERSON_VOCAB["third"], 1, 1, 1, NUMBER_VOCAB["singular"]]
-
-            try:
-                surface = self.decode([TensorCoordinate(vec)]) 
-                stem = surface
-                if surface.endswith("anti"): stem = surface[:-4]
-                elif surface.endswith("ante"): stem = surface[:-4]
-                elif surface.endswith("ti"): stem = surface[:-2]
-                elif surface.endswith("te"): stem = surface[:-2]
+                self.stem_map[root_str + "a"] = root_id
+                self.stem_map[root_str + "i"] = root_id
                 
-                if stem.endswith("a"):
-                    self.stem_map[stem[:-1]] = root_id
-                self.stem_map[stem] = root_id
-            except: pass
-            
-            # Find Nominal Stem
-            is_nominal = root_str in ["rāma", "deva", "avatāra", "pustaka"]
-            derivation_id = 0 if is_nominal else DERIVATION_VOCAB.get("ghañ", 1)
-            if self.default_dim == 5:
-                vec_noun = [root_id, POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
-            elif self.default_dim == 7:
-                vec_noun = [0, root_id, derivation_id, POS_VOCAB["noun"], GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
-            else:
-                vec_noun = [root_id, POS_VOCAB["noun"], 0, derivation_id, 0, 1, 1, 1, GENDER_VOCAB["masculine"], CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]]
-
-            try:
-                surface = self.decode([TensorCoordinate(vec_noun)])
-                if surface.endswith("ḥ"):
-                    self.stem_map[surface[:-1]] = root_id
-            except: pass
+        # Add special irregular verb present stems and common irregularities
+        stem_exceptions = {
+            "gam": "gaccha", "paś": "paśya", "sad": "sīda", "sthā": "tiṣṭha", 
+            "mnā": "mana", "dā": "dadā", "han": "han", "sidh": "sidhy", "praviś": "praviś"
+        }
+        for root, ex_stem in stem_exceptions.items():
+            rid = ROOT_VOCAB.get(root)
+            if rid:
+                self.stem_map[ex_stem] = rid
+                if ex_stem.endswith("a"):
+                    self.stem_map[ex_stem[:-1]] = rid
 
     def encode(self, text: str) -> List[TensorCoordinate]:
         """
@@ -132,11 +113,19 @@ class TensorTokenizer:
             "ante": (PERSON_VOCAB["third"], NUMBER_VOCAB["plural"]),
             "ti": (PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]),
             "te": (PERSON_VOCAB["third"], NUMBER_VOCAB["singular"]),
+            "si": (PERSON_VOCAB["second"], NUMBER_VOCAB["singular"]),
+            "mi": (PERSON_VOCAB["first"], NUMBER_VOCAB["singular"]),
         }
         suffix_map_noun = {
             "sya": (CASE_VOCAB["genitive"], NUMBER_VOCAB["singular"]),
             "am": (CASE_VOCAB["accusative"], NUMBER_VOCAB["singular"]),
             "ḥ": (CASE_VOCAB["nominative"], NUMBER_VOCAB["singular"]),
+            "ena": (CASE_VOCAB["instrumental"], NUMBER_VOCAB["singular"]),
+            "aiḥ": (CASE_VOCAB["instrumental"], NUMBER_VOCAB["plural"]),
+            "āni": (CASE_VOCAB["nominative"], NUMBER_VOCAB["plural"]),
+            "āṇi": (CASE_VOCAB["nominative"], NUMBER_VOCAB["plural"]),
+            "e": (CASE_VOCAB["locative"], NUMBER_VOCAB["singular"]),
+            "eṣu": (CASE_VOCAB["locative"], NUMBER_VOCAB["plural"]),
         }
         
         for word in words:

@@ -81,7 +81,10 @@ def populate_vocabularies(dhatu_filepath: str = None):
         "gam": 1, "han": 2, "dā": 3, "bhū": 4, 
         "rāma": 5, "deva": 6, "avatāra": 7, "kṛ": 8, "pustaka": 9,
         "karma": 101, "eva": 102, "adhikāra": 103, "te": 104, "mā": 105, "phala": 106, "kadācana": 107,
-        "dharma": 108, "kṣetra": 109, "kuru": 110, "yuyutsu": 111, "sañjaya": 112
+        "dharma": 108, "kṣetra": 109, "kuru": 110, "yuyutsu": 111, "sañjaya": 112,
+        "udyama": 113, "hi": 114, "sidh": 115, "kārya": 116, "na": 117, "manoratha": 118,
+        "ca": 119, "tu": 120, "api": 121, "iti": 122, "tatra": 123, "atra": 124, "yatra": 125,
+        "supta": 126, "siṃha": 127, "praviś": 128, "mukha": 129, "mṛga": 130
     })
     
     # Defaults for core test words
@@ -91,8 +94,45 @@ def populate_vocabularies(dhatu_filepath: str = None):
         "dā": {"gana": "3", "pada": "U", "settva": "A"},
         "bhū": {"gana": "1", "pada": "P", "settva": "S"},
         "kṛ": {"gana": "8", "pada": "U", "settva": "A"},
+        "sidh": {"gana": "4", "pada": "P", "settva": "S"},
+        "praviś": {"gana": "6", "pada": "P", "settva": "S"},
     })
     
+    # Auto-load massive optimized databases from data/ directory
+    base_data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+    opt_dhatu = os.path.join(base_data_dir, "optimized_dhatu.json")
+    opt_prat = os.path.join(base_data_dir, "optimized_pratipadika.json")
+    
+    if os.path.exists(opt_dhatu):
+        try:
+            with open(opt_dhatu, "r", encoding="utf-8") as f:
+                for item in json.load(f):
+                    cid = item.get("vector_meta", {}).get("concept_id")
+                    morph = item.get("morphology", {})
+                    iast = morph.get("dhatu_iast")
+                    if cid and iast and iast not in ROOT_VOCAB:
+                        ROOT_VOCAB[iast] = cid
+                        flags = item.get("compiler_flags", {})
+                        DHATU_META[iast] = {
+                            "gana": str(flags.get("gana", 1)),
+                            "pada": flags.get("pada", "P"),
+                            "settva": flags.get("settva", "S")
+                        }
+        except Exception:
+            pass
+
+    if os.path.exists(opt_prat):
+        try:
+            with open(opt_prat, "r", encoding="utf-8") as f:
+                for item in json.load(f):
+                    cid = item.get("vector_meta", {}).get("concept_id")
+                    morph = item.get("morphology", {})
+                    iast = morph.get("base_iast")
+                    if cid and iast and iast not in ROOT_VOCAB:
+                        ROOT_VOCAB[iast] = cid
+        except Exception:
+            pass
+
     # Load from dynamic JSON database if available
     if dhatu_filepath and os.path.exists(dhatu_filepath):
         try:
@@ -103,7 +143,6 @@ def populate_vocabularies(dhatu_filepath: str = None):
 
         with open(dhatu_filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            # Assuming 'data' contains an array of dhatu objects from Ashtadhyayi-data
             dhatu_list = data.get("data", [])
             max_id = max(ROOT_VOCAB.values()) if ROOT_VOCAB else 0
             
@@ -112,7 +151,6 @@ def populate_vocabularies(dhatu_filepath: str = None):
                 aupadeshik_dev = item.get("aupadeshik", "")
                 
                 if d_name_devanagari:
-                    # Translate traditional Devanagari to phonetic IAST so tensor maths works
                     d_name_iast = sanscript.transliterate(d_name_devanagari, sanscript.DEVANAGARI, sanscript.IAST)
                     aupadeshik_iast = sanscript.transliterate(aupadeshik_dev, sanscript.DEVANAGARI, sanscript.IAST) if aupadeshik_dev else d_name_iast
                     
@@ -121,20 +159,14 @@ def populate_vocabularies(dhatu_filepath: str = None):
                         ROOT_VOCAB[d_name_iast] = max_id
                     ROOT_VOCAB[d_name_devanagari] = ROOT_VOCAB[d_name_iast]
                     
-                    # True Paninian Anubandha Stripping
-                    # ñit (ñ) -> Ubhayapada
-                    # ṅit (ṅ) -> Atmanepada
-                    if aupadeshik_iast.endswith("ñ"):
-                        calc_pada = "U"
-                    elif aupadeshik_iast.endswith("ṅ"):
-                        calc_pada = "A"
-                    else:
-                        calc_pada = item.get("pada", "P") # Fallback
+                    if aupadeshik_iast.endswith("ñ"): calc_pada = "U"
+                    elif aupadeshik_iast.endswith("ṅ"): calc_pada = "A"
+                    else: calc_pada = item.get("pada", "P")
                         
                     DHATU_META[d_name_iast] = {
                         "gana": item.get("gana", "1"),
                         "pada": calc_pada,
-                        "settva": item.get("settva", "S") # 'S' = seṭ, 'A' = aniṭ
+                        "settva": item.get("settva", "S")
                     }
                     DHATU_META[d_name_devanagari] = DHATU_META[d_name_iast]
                     

@@ -96,12 +96,20 @@ class SandhiSplitterTokenizer:
         self.table = rainbow_table
         self.tokenizer = tokenizer
 
+    def is_valid_pada(self, word: str) -> bool:
+        if word in self.table.word_to_vec or self.tokenizer.stem_map.get(word):
+            return True
+        encoded = self.tokenizer.encode(word)
+        if encoded and len(encoded) == 1 and 0 < encoded[0].vector[0] < 90000:
+            return True
+        return False
+
     def unmerge_sandhi(self, continuous_word: str, max_depth: int = 4) -> List[str]:
         """
         Greedily attempts to split a compound/sandhi word into valid cached padas.
         E.g., 'devāvatāraḥ' -> ['deva', 'avatāraḥ']
         """
-        if continuous_word in self.table.word_to_vec or self.tokenizer.stem_map.get(continuous_word):
+        if self.is_valid_pada(continuous_word):
             return [continuous_word]
         if max_depth <= 0 or len(continuous_word) <= 2:
             return [continuous_word]
@@ -134,10 +142,10 @@ class SandhiSplitterTokenizer:
                 candidates_right.append(right_part)
 
             for cl in candidates_left:
-                if cl in self.table.word_to_vec or self.tokenizer.stem_map.get(cl):
+                if self.is_valid_pada(cl):
                     for cr in candidates_right:
                         res_right = self.unmerge_sandhi(cr, max_depth - 1)
-                        if all(w in self.table.word_to_vec or self.tokenizer.stem_map.get(w) for w in res_right):
+                        if all(self.is_valid_pada(w) for w in res_right):
                             return [cl] + res_right
 
         return [continuous_word] # Fallback unsplit

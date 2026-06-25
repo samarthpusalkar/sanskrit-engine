@@ -41,7 +41,10 @@ def run_demo():
     # -------------------------------------------------------------------------
     # PART 1: BHAGAVAD GITA SHLOKA VECTORIZATION & FILE IO
     # -------------------------------------------------------------------------
-    shloka = "dharmakṣetre kurukṣetre samavetā yuyutsavaḥ"
+    if len(sys.argv) > 1:
+        shloka = " ".join(sys.argv[1:])
+    else:
+        shloka = "udyamena hi sidhyanti kāryāṇi na manorathaiḥ"
     print(f"\n[1] Input Bhagavad Gita Shloka:\n    \"{shloka}\"")
     
     vectors = splitter.tokenize_to_vectors(shloka)
