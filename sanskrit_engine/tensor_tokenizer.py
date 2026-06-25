@@ -135,7 +135,12 @@ class TensorTokenizer:
                             gender = GENDER_VOCAB["neuter"] if suff == "am" and is_nominal else GENDER_VOCAB["masculine"]
                             tensor = [0, root_id, derivation_id, POS_VOCAB["noun"], gender, cas, num]
                             break
-                            
+            if tensor is None:
+                # Direct match
+                root_id = self.stem_map.get(word)
+                if root_id:
+                    tensor = [0, root_id, 0, POS_VOCAB["avyaya"], 0, 0, 0]
+            
             if tensor is None:
                 print(f"[!] ENCODER WARNING: Inverse Parser failed to strip suffix for '{word}'.")
                 tensor = [0, 0, 0, 0, 0, 0, 0]
