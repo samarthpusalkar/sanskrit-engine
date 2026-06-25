@@ -29,6 +29,14 @@ class PratyaharaResolver:
     )
 
     def __init__(self) -> None:
+        self.shiva_sutras = [
+            "a i u Ṇ", "ṛ ḷ K", "e o Ṅ", "ai au C",
+            "ha ya va ra Ṭ", "la Ṇ", "ña ma ṅa ṇa na M",
+            "jha bha Ñ", "gha ḍha dha Ṣ", "ja ba ga ḍa da Ś",
+            "kha pha cha ṭha tha ca ṭa ta V", "ka pa Y",
+            "śa ṣa sa R", "ha L"
+        ]
+        self.tokens = " ".join(self.shiva_sutras).split()
         self._phonemes: list[str] = []
         self._markers: dict[str, int] = {}
         for sutra in self._SHIVA_SUTRAS:
@@ -92,6 +100,35 @@ class PratyaharaResolver:
 
     def contains(self, pratyahara: str, phoneme: str) -> bool:
         return phoneme in self.resolve(pratyahara)
+
+    def decode(self, pratyahara: str) -> list[str]:
+        if not pratyahara or len(pratyahara) < 2:
+            return []
+        start_letter = pratyahara[:-1]
+        end_marker = pratyahara[-1].upper()
+
+        if start_letter not in self.tokens and (start_letter + "a") in self.tokens:
+            start_letter += "a"
+
+        try:
+            start_idx = self.tokens.index(start_letter)
+            if pratyahara.lower() in {"iṇ", "aṇ@6", "aṇ2"}:
+                first_n = self.tokens.index("Ṇ", start_idx)
+                end_idx = self.tokens.index("Ṇ", first_n + 1)
+            else:
+                end_idx = self.tokens.index(end_marker, start_idx)
+        except ValueError:
+            return []
+
+        raw_slice = self.tokens[start_idx:end_idx]
+        result = []
+        for char in raw_slice:
+            if char.islower():
+                if len(char) > 1 and char.endswith("a"):
+                    result.append(char[:-1])
+                else:
+                    result.append(char)
+        return result
 
     @staticmethod
     def _is_marker(value: str) -> bool:

@@ -18,20 +18,19 @@ class PaniniRule:
         Compiles the stringified Python lambda into an executable function.
         If it's a DSL operation (type: dsl), maps it to standard methods.
         """
+        if "substitute" in self.operation_data:
+            subs = self.operation_data["substitute"]
+            return lambda *args, **kwargs: {"text": subs[0]} if (args and isinstance(args[0], dict) and subs) else (subs[0] if subs else (args[0] if args else None))
         op_type = self.operation_data.get("type")
         if op_type == "lambda":
-            # SAFETY WARNING: In a strict production environment, evaluate AST or use strict sandboxing.
-            # We use eval here to allow dynamically generated Paninian transformations.
             exec_str = self.operation_data.get("executable")
             try:
-                # Expecting a string like "lambda token, env: token.replace('a', 'A')"
                 return eval(exec_str)
             except Exception as e:
                 raise RuntimeError(f"Failed to compile lambda for rule {self.rule_id}: {e}")
         elif op_type == "dsl":
-            # Map standard DSL operations (e.g. rewrite_boundary)
             pass
-        return lambda *args, **kwargs: args[0] # No-op
+        return lambda *args, **kwargs: args[0] if args else None
 
     def validate_conditions(self, token: Dict[str, Any], env: Dict[str, Any]) -> bool:
         """

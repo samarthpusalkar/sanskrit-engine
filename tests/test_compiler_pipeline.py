@@ -1,4 +1,6 @@
 import pytest
+from sanskrit_engine.pratyahara import PratyaharaResolver
+from sanskrit_engine.panini_parser import CaseCompiler
 from sanskrit_engine.compiler_pipeline import (
     DerivationContext,
     GamToGacchRule,
@@ -51,3 +53,25 @@ def test_rule_factory() -> None:
     ctx = DerivationContext([0]*11, "test")
     rule.apply(ctx)
     assert ctx.stem == "testX"
+
+
+def test_pratyahara_unzipper_shiva_sutras() -> None:
+    resolver = PratyaharaResolver()
+    assert resolver.decode("ik") == ["i", "u", "ṛ", "ḷ"]
+    assert resolver.decode("yaṇ") == ["y", "v", "r", "l"]
+    assert resolver.decode("ac") == ["a", "i", "u", "ṛ", "ḷ", "e", "o", "ai", "au"]
+
+
+def test_case_compiler_vibhakti_resolution() -> None:
+    compiler = CaseCompiler()
+    padaccheda = [
+        {"pada": "इकः", "pada_split": "ik", "vibhakti": 6},
+        {"pada": "यण्", "pada_split": "yaṇ", "vibhakti": 1},
+        {"pada": "अचि", "pada_split": "ac", "vibhakti": 7},
+    ]
+    ir = compiler.compile_rule_to_ir("6.1.77", padaccheda, ["विधि"], "sandhi")
+    assert ir["conditions"]["target_regex"] == "[i, u, ṛ, ḷ]"
+    assert ir["conditions"]["lookahead_regex"] == "[a, i, u, ṛ, ḷ, e, o, ai, au]"
+    assert ir["operations"]["substitute"] == ["y", "v", "r", "l"]
+
+

@@ -12,6 +12,7 @@ from sanskrit_engine import (
     load_rules,
     load_sutras,
 )
+from sanskrit_engine.rules import Condition, Operation
 from sanskrit_engine.dataset import generate_jsonl
 from sanskrit_engine.enforcer import RuleEnforcer
 from sanskrit_engine.lexicon import NounEntry, VerbEntry
@@ -349,3 +350,26 @@ def test_cli_hydrate_rules(tmp_path) -> None:
 
     assert data["rules"][1]["conditions"]["target"]["tag"] == "x"
     assert "inherits" not in data["rules"][1]
+
+
+def test_tripadi_firewall_one_way_execution() -> None:
+    r_tripadi = Rule(
+        id="8.2.39",
+        name="tripadi_retroflex",
+        type="vidhi",
+        priority=10,
+        target=Condition(text="s"),
+        operation=Operation(type="replace_text", text="ṣ"),
+    )
+    r_sapada = Rule(
+        id="1.1.1",
+        name="sapada_trigger",
+        type="vidhi",
+        priority=100,
+        target=Condition(text="ṣ"),
+        operation=Operation(type="replace_text", text="X"),
+    )
+    engine = Engine([r_tripadi, r_sapada])
+    res = engine.process([Token("s")])
+    assert res.text == "ṣ"
+

@@ -41,15 +41,36 @@ class Engine:
         self.conflict_resolver = conflict_resolver or ConflictResolver()
         self.max_steps = max_steps
 
-    def process(self, tokens: list[Token]) -> EngineResult:
-        state = [token.copy() for token in tokens]
-        trace: list[TraceStep] = []
-        seen = {tape_fingerprint(state)}
+    @staticmethod
+    def _is_tripadi(rule_id: str) -> bool:
+        parts = str(rule_id).split(".")
+        if len(parts) >= 2:
+            try:
+                ch = int(parts[0])
+                pa = int(parts[1])
+                if ch > 8:
+                    return True
+                if ch == 8 and pa >= 2:
+                    return True
+            except ValueError:
+                pass
+        return False
 
+    def run_sapadasaptadhyayi(
+        self,
+        state: list[Token],
+        trace: list[TraceStep],
+        seen: set[tuple],
+        sapada_rules: list[Rule],
+    ) -> str:
         for _ in range(self.max_steps):
-            matches = self._find_matches(state)
+            matches: list[Match] = []
+            for index in range(len(state)):
+                for rule in sapada_rules:
+                    if rule.matches(state, index, self.pratyahara):
+                        matches.append(Match(rule, index))
             if not matches:
-                return EngineResult(state, trace, "stable")
+                return "stable"
 
             chosen = self.conflict_resolver.choose(matches)
             before = tape_fingerprint(state)
@@ -67,10 +88,52 @@ class Engine:
             )
 
             if after in seen:
-                return EngineResult(state, trace, "cycle_detected")
+                return "cycle_detected"
             seen.add(after)
 
-        return EngineResult(state, trace, "max_steps")
+        return "max_steps"
+
+    def run_tripadi(
+        self,
+        state: list[Token],
+        trace: list[TraceStep],
+        seen: set[tuple],
+        tripadi_rules: list[Rule],
+    ) -> str:
+        for rule in tripadi_rules:
+            for index in range(len(state)):
+                if rule.matches(state, index, self.pratyahara):
+                    before = tape_fingerprint(state)
+                    self._apply(rule, state, index)
+                    after = tape_fingerprint(state)
+                    trace.append(
+                        TraceStep(
+                            rule_id=rule.id,
+                            rule_name=rule.name,
+                            index=index,
+                            before=before,
+                            after=after,
+                        )
+                    )
+                    break
+        return "stable"
+
+    def process(self, tokens: list[Token]) -> EngineResult:
+        state = [token.copy() for token in tokens]
+        trace: list[TraceStep] = []
+        seen = {tape_fingerprint(state)}
+
+        sapada_rules = [r for r in self.rules if not self._is_tripadi(r.id)]
+        tripadi_rules = [r for r in self.rules if self._is_tripadi(r.id)]
+
+        status = self.run_sapadasaptadhyayi(state, trace, seen, sapada_rules)
+        if status != "stable":
+            return EngineResult(state, trace, status)
+
+        if tripadi_rules:
+            status = self.run_tripadi(state, trace, seen, tripadi_rules)
+
+        return EngineResult(state, trace, status)
 
     def _find_matches(self, tokens: list[Token]) -> list[Match]:
         matches: list[Match] = []
