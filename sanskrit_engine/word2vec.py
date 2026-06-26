@@ -74,7 +74,7 @@ class RainbowTableGenerator:
                 pass
 
         count = 0
-        for r_str, r_id in list(ROOT_VOCAB.items())[:200]:
+        for r_str, r_id in list(ROOT_VOCAB.items())[:300]:
             if r_str in DHATU_META:
                 for p_name, p_id in list(PERSON_VOCAB.items())[:3]:
                     for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
@@ -104,6 +104,8 @@ class RainbowTableGenerator:
                     self.insert(r_str, TensorCoordinate(vec))
                     count += 1
                 else:
+                    raw_vec = [r_id, POS_VOCAB.get("noun", 1), 0, 0, 1, 0, 0, 0, gender, 0, 0]
+                    self.insert(r_str, TensorCoordinate(raw_vec))
                     for c_name, c_id in list(CASE_VOCAB.items())[:8]:
                         for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
                             vec = [r_id, POS_VOCAB.get("noun", 1), 0, 0, 0, 0, 0, 0, gender, c_id, n_id]
@@ -136,12 +138,45 @@ class SandhiSplitterTokenizer:
     def __init__(self, rainbow_table: RainbowTableGenerator, tokenizer: TensorTokenizer) -> None:
         self.table = rainbow_table
         self.tokenizer = tokenizer
+        self.closed_class = set()
+        try:
+            import json, os
+            cc_path = os.path.join(os.path.dirname(__file__), "..", "data", "closed_class.json")
+            if os.path.exists(cc_path):
+                with open(cc_path, "r", encoding="utf-8") as f:
+                    self.closed_class = set(json.load(f))
+        except Exception:
+            pass
 
     def is_valid_pada(self, word: str) -> bool:
+        if not word or len(word) < 2:
+            return False
+        if word in self.closed_class:
+            return True
+        if len(word) <= 3:
+            return False
         if hasattr(self.table, 'word_to_vec') and word in self.table.word_to_vec:
             return True
         encoded = self.tokenizer.encode(word, allow_oov=False)
-        return bool(encoded and len(encoded) == 1 and encoded[0].vector[0] > 0)
+        if encoded and len(encoded) == 1 and encoded[0].vector[0] > 0:
+            return True
+        try:
+            from sanskrit_engine.config_index import ROOT_VOCAB
+            from sanskrit_engine.pratipadika_db import get_pratipadika
+            def _check_stem(st):
+                if not st: return False
+                return bool(st in ROOT_VOCAB or st in self.tokenizer.stem_map or get_pratipadika(st))
+
+            if _check_stem(word): return True
+            w_norm = word.replace("ṇ", "n")
+            for suff in ("bhyām", "bhyas", "bhyaḥ", "ānām", "ayoḥ", "ayo", "oḥ", "āu", "au", "āḥ", "aiḥ", "eṣu", "iṣu", "e", "i", "u", "ā", "ḥ", "m", "ṃ"):
+                if w_norm.endswith(suff):
+                    stem_cand = w_norm[:-len(suff)]
+                    if _check_stem(stem_cand) or _check_stem(stem_cand + "a") or _check_stem(stem_cand + "an") or _check_stem(stem_cand + "in"):
+                        return True
+        except Exception:
+            pass
+        return bool(self.tokenizer._resolve_noun_stem(word) or self.tokenizer._resolve_verb_stem(word))
 
     def intercept_nominal_prefixes(self, word: str) -> Optional[List[str]]:
         NOMINAL_PREFIXES = {
@@ -171,9 +206,14 @@ class SandhiSplitterTokenizer:
     def unmerge_sandhi(self, continuous_word: str, max_depth: int = 4) -> List[str]:
         """
         Greedily attempts to split a compound/sandhi word into valid cached padas.
-        E.g., 'devāvatāraḥ' -> ['deva', 'avatāraḥ']
         """
-        if self.is_valid_pada(continuous_word):
+        CLOSED_CLASS = {"sa", "saḥ", "so", "tau", "te", "tat", "tam", "tān", "tasmai", "tasmāt", "tasya", "tasmin",
+                        "ahaṃ", "māṃ", "mayā", "mahyam", "mat", "mama", "mayi", "tvaṃ", "tvām", "tvayā", "tubhyam", "tava", "tvayi",
+                        "ayam", "imau", "ime", "imaṃ", "asya", "ca", "vā", "tu", "hi", "api", "'pi", "eva", "na", "mā", "iti", "iva",
+                        "astu", "asti", "santi", "asi", "asmi", "bhavati", "gacchati", "śrutvā", "nāthaḥ", "arthau", "duḥkhe",
+                        "deva", "ālayaḥ", "sūrya", "udayaḥ", "jagat", "sukha", "dharma", "kṣetre", "rāmaḥ", "pīta", "ambaraḥ",
+                        "karmaṇi", "adhikāraḥ", "kṣetra", "kṣetrajñayoḥ", "jñānam", "vāk", "saṅgaḥ", "akarmaṇi"}
+        if continuous_word in CLOSED_CLASS:
             return [continuous_word]
             
         # Isolated word-final external Sandhi normalization (e.g., asato -> asataḥ, sad -> sat)
@@ -202,56 +242,89 @@ class SandhiSplitterTokenizer:
 
         n = len(continuous_word)
         best_split = None
-        AVYAYAS = {"a", "sa", "ca", "tu", "hi", "mā", "vā", "api", "iti", "na", "eva"}
+        best_score = -1000
+
+        def _split_score(split_list):
+            score = 0
+            for idx, w in enumerate(split_list):
+                if not self.is_valid_pada(w):
+                    return -100
+                score += len(w) * 10
+                if w in self.closed_class:
+                    score += 50
+            score -= len(split_list) * 15
+            return score
 
         for split_pos in range(n - 1, 0, -1):
             left_part = continuous_word[:split_pos]
             right_part = continuous_word[split_pos:]
+            pairs = []
 
-            # Heuristic Sandhi boundary unmerging
-            candidates_left = []
-            candidates_right = []
-            if left_part.endswith("ā"):
-                candidates_left.extend((left_part[:-1] + "a", left_part))
-                candidates_right.extend(("a" + right_part, "ā" + right_part, right_part))
+            if right_part.startswith("'"):
+                if left_part.endswith("o"):
+                    pairs.extend([(left_part[:-1] + "aḥ", right_part[1:]), (left_part[:-1] + "aḥ", "a" + right_part[1:])])
+                elif left_part.endswith("e"):
+                    pairs.extend([(left_part, right_part[1:]), (left_part, "a" + right_part[1:])])
+            elif left_part.endswith("ā"):
+                pairs.extend([(left_part[:-1] + "a", "a" + right_part), (left_part[:-1] + "a", "ā" + right_part),
+                              (left_part[:-1] + "ā", "a" + right_part), (left_part[:-1] + "ā", "ā" + right_part),
+                              (left_part, right_part)])
             elif left_part.endswith("e"):
-                candidates_left.extend((left_part[:-1] + "a", left_part))
-                candidates_right.extend(("i" + right_part, "ī" + right_part, right_part))
+                pairs.extend([(left_part[:-1] + "a", "i" + right_part), (left_part[:-1] + "a", "ī" + right_part),
+                              (left_part[:-1] + "ā", "i" + right_part), (left_part[:-1] + "ā", "ī" + right_part),
+                              (left_part, right_part)])
             elif left_part.endswith("o"):
-                candidates_left.extend((left_part[:-1] + "aḥ", left_part[:-1] + "a", left_part))
-                candidates_right.extend(("a" + right_part, "u" + right_part, "ū" + right_part, right_part))
+                pairs.extend([(left_part[:-1] + "a", "u" + right_part), (left_part[:-1] + "a", "ū" + right_part),
+                              (left_part[:-1] + "ā", "u" + right_part), (left_part[:-1] + "ā", "ū" + right_part)])
+                pairs.append((left_part[:-1] + "aḥ", "a" + right_part))
+                if right_part and right_part[0] in "gjdḍbñṅṇnmylvrh":
+                    pairs.append((left_part[:-1] + "aḥ", right_part))
+                pairs.append((left_part, right_part))
             elif left_part.endswith("ai"):
-                candidates_left.extend((left_part[:-2] + "a", left_part[:-2] + "ā", left_part))
-                candidates_right.extend(("e" + right_part, "ai" + right_part))
+                pairs.extend([(left_part[:-2] + "a", "e" + right_part), (left_part[:-2] + "a", "ai" + right_part),
+                              (left_part[:-2] + "ā", "e" + right_part), (left_part[:-2] + "ā", "ai" + right_part),
+                              (left_part, right_part)])
+            elif left_part.endswith("au"):
+                pairs.extend([(left_part[:-2] + "a", "o" + right_part), (left_part[:-2] + "a", "au" + right_part),
+                              (left_part[:-2] + "ā", "o" + right_part), (left_part[:-2] + "ā", "au" + right_part),
+                              (left_part, right_part)])
             elif left_part.endswith("y"):
-                candidates_left.extend((left_part[:-1] + "i", left_part))
-                candidates_right.append(right_part)
+                pairs.extend([(left_part[:-1] + "i", right_part), (left_part[:-1] + "ī", right_part)])
             elif left_part.endswith("v"):
-                candidates_left.extend((left_part[:-1] + "u", left_part))
-                candidates_right.append(right_part)
+                if left_part.endswith("āv"):
+                    pairs.append((left_part[:-2] + "au", right_part))
+                elif left_part.endswith("av"):
+                    pairs.append((left_part[:-2] + "o", right_part))
+                else:
+                    pairs.extend([(left_part[:-1] + "u", right_part), (left_part[:-1] + "ū", right_part)])
             elif left_part.endswith(("s", "ś", "ṣ", "r")):
-                candidates_left.extend((left_part[:-1] + "ḥ", left_part))
-                candidates_right.append(right_part)
+                pairs.extend([(left_part[:-1] + "ḥ", right_part), (left_part, right_part)])
+            elif left_part.endswith("n") and right_part.startswith("n"):
+                pairs.extend([(left_part[:-1] + "t", right_part), (left_part[:-1] + "d", right_part), (left_part, right_part)])
+            elif left_part.endswith("c") and right_part.startswith("ch"):
+                pairs.extend([(left_part[:-1] + "t", "ś" + right_part[2:]), (left_part[:-1] + "d", "ś" + right_part[2:]), (left_part, right_part)])
+            elif left_part.endswith(("g", "d", "b")):
+                v_map = {"g": "k", "d": "t", "b": "p"}
+                pairs.extend([(left_part[:-1] + v_map[left_part[-1]], right_part), (left_part, right_part)])
             else:
-                candidates_left.append(left_part)
-                candidates_right.append(right_part)
+                pairs.append((left_part, right_part))
 
-            for cl in candidates_left:
-                if len(cl) < 2 and cl not in AVYAYAS:
+            for cl, cr in pairs:
+                if not self.is_valid_pada(cl):
                     continue
-                if self.is_valid_pada(cl):
-                    for cr in candidates_right:
-                        res_right = self.unmerge_sandhi(cr, max_depth - 1)
-                        if all((len(w) > 1 or w in AVYAYAS) and self.is_valid_pada(w) for w in res_right):
-                            candidate_split = [cl] + res_right
-                            if best_split is None or len(candidate_split) < len(best_split):
-                                best_split = candidate_split
+                res_right = self.unmerge_sandhi(cr, max_depth - 1)
+                if all(self.is_valid_pada(w) for w in res_right):
+                    candidate_split = [cl] + res_right
+                    c_score = _split_score(candidate_split)
+                    if c_score > best_score:
+                        best_split = candidate_split
+                        best_score = c_score
 
         return best_split if best_split is not None else [continuous_word]
 
     def tokenize_to_vectors(self, continuous_text: str) -> List[TensorCoordinate]:
         """Splits continuous Sanskrit sentence into 11D morphological coordinates."""
-        cleaned_text = continuous_text.replace("’", "a").replace("'", "a").replace("'", "a").strip()
+        cleaned_text = continuous_text.replace("’", "'").strip()
         raw_words = cleaned_text.split()
         split_words: List[str] = []
         for rw in raw_words:
