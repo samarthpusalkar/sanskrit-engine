@@ -91,13 +91,15 @@ class RainbowTableGenerator:
                     for c_name, c_id in list(CASE_VOCAB.items())[:8]:
                         for n_name, n_id in list(NUMBER_VOCAB.items())[:3]:
                             vec = [r_id, POS_VOCAB.get("noun", 1), 0, 0, 0, 0, 0, 0, gender, c_id, n_id]
-                        coord = TensorCoordinate(vec)
-                        try:
-                            surf = tokenizer.decode([coord])
-                            self.insert(surf, coord)
-                            count += 1
-                        except Exception:
-                            pass
+                            coord = TensorCoordinate(vec)
+                            try:
+                                surf = tokenizer.decode([coord])
+                                self.insert(surf, coord)
+                                if r_str.endswith("u") and c_id in (5, 6) and n_id == 1:
+                                    self.insert(r_str[:-1] + "oḥ", coord)
+                                count += 1
+                            except Exception:
+                                pass
         return count
 
 
@@ -111,18 +113,10 @@ class SandhiSplitterTokenizer:
         self.tokenizer = tokenizer
 
     def is_valid_pada(self, word: str) -> bool:
-        if word in self.table.word_to_vec:
+        if hasattr(self.table, 'word_to_vec') and word in self.table.word_to_vec:
             return True
-        # Check if it has a valid suffix using tokenizer
         encoded = self.tokenizer.encode(word, allow_oov=False)
-        if encoded and len(encoded) == 1:
-            cid = encoded[0].vector[0]
-            if cid > 0 and not (90000 <= cid <= 99999):
-                pos = encoded[0].vector[1] if len(encoded[0].vector) > 1 else 0
-                vibhakti = encoded[0].vector[9] if len(encoded[0].vector) > 9 else 0
-                if pos == 6 or vibhakti > 0 or (word in self.tokenizer.stem_map and len(word) >= 3):
-                    return True
-        return False
+        return bool(encoded and len(encoded) == 1 and encoded[0].vector[0] > 0)
 
     def intercept_nominal_prefixes(self, word: str) -> Optional[List[str]]:
         NOMINAL_PREFIXES = {
@@ -157,6 +151,23 @@ class SandhiSplitterTokenizer:
         if self.is_valid_pada(continuous_word):
             return [continuous_word]
             
+        # Isolated word-final external Sandhi normalization (e.g., asato -> asataḥ, sad -> sat)
+        norm_candidates = []
+        if continuous_word.endswith("o"):
+            norm_candidates.append(continuous_word[:-1] + "aḥ")
+        elif continuous_word.endswith(("r", "s", "ś", "ṣ")):
+            norm_candidates.append(continuous_word[:-1] + "ḥ")
+        elif continuous_word.endswith("d"):
+            norm_candidates.append(continuous_word[:-1] + "t")
+        elif continuous_word.endswith("g"):
+            norm_candidates.append(continuous_word[:-1] + "k")
+        elif continuous_word.endswith("b"):
+            norm_candidates.append(continuous_word[:-1] + "p")
+            
+        for nc in norm_candidates:
+            if self.is_valid_pada(nc):
+                return [nc]
+            
         intercepted = self.intercept_nominal_prefixes(continuous_word)
         if intercepted:
             return intercepted
@@ -168,38 +179,36 @@ class SandhiSplitterTokenizer:
         best_split = None
         AVYAYAS = {"a", "sa", "ca", "tu", "hi", "mā", "vā", "api", "iti", "na", "eva"}
 
-        for split_pos in range(1, n):
+        for split_pos in range(n - 1, 0, -1):
             left_part = continuous_word[:split_pos]
             right_part = continuous_word[split_pos:]
 
             # Heuristic Sandhi boundary unmerging
-            candidates_left = [left_part]
-            candidates_right = [right_part]
+            candidates_left = []
+            candidates_right = []
             if left_part.endswith("ā"):
-                candidates_left.append(left_part[:-1] + "a")
-                candidates_right.append("a" + right_part)
-                candidates_right.append("ā" + right_part)
+                candidates_left.extend((left_part[:-1] + "a", left_part))
+                candidates_right.extend(("a" + right_part, "ā" + right_part, right_part))
             elif left_part.endswith("e"):
-                candidates_left.append(left_part[:-1] + "a")
-                candidates_right.append("i" + right_part)
-                candidates_right.append("ī" + right_part)
+                candidates_left.extend((left_part[:-1] + "a", left_part))
+                candidates_right.extend(("i" + right_part, "ī" + right_part, right_part))
             elif left_part.endswith("o"):
-                candidates_left.append(left_part[:-1] + "aḥ")
-                candidates_left.append(left_part[:-1] + "a")
-                candidates_right.append("a" + right_part)
-                candidates_right.append("u" + right_part)
-                candidates_right.append("ū" + right_part)
-                candidates_right.append(right_part)
+                candidates_left.extend((left_part[:-1] + "aḥ", left_part[:-1] + "a", left_part))
+                candidates_right.extend(("a" + right_part, "u" + right_part, "ū" + right_part, right_part))
             elif left_part.endswith("ai"):
-                candidates_left.append(left_part[:-2] + "a")
-                candidates_left.append(left_part[:-2] + "ā")
-                candidates_right.append("e" + right_part)
-                candidates_right.append("ai" + right_part)
+                candidates_left.extend((left_part[:-2] + "a", left_part[:-2] + "ā", left_part))
+                candidates_right.extend(("e" + right_part, "ai" + right_part))
             elif left_part.endswith("y"):
-                candidates_left.append(left_part[:-1] + "i")
+                candidates_left.extend((left_part[:-1] + "i", left_part))
                 candidates_right.append(right_part)
-            elif left_part.endswith("s") or left_part.endswith("ś") or left_part.endswith("ṣ") or left_part.endswith("r"):
-                candidates_left.append(left_part[:-1] + "ḥ")
+            elif left_part.endswith("v"):
+                candidates_left.extend((left_part[:-1] + "u", left_part))
+                candidates_right.append(right_part)
+            elif left_part.endswith(("s", "ś", "ṣ", "r")):
+                candidates_left.extend((left_part[:-1] + "ḥ", left_part))
+                candidates_right.append(right_part)
+            else:
+                candidates_left.append(left_part)
                 candidates_right.append(right_part)
 
             for cl in candidates_left:
@@ -225,7 +234,7 @@ class SandhiSplitterTokenizer:
 
         vectors: List[TensorCoordinate] = []
         for sw in split_words:
-            cached = self.table.lookup_word(sw)
+            cached = self.table.lookup_word(sw) if hasattr(self.table, 'lookup_word') else None
             if cached:
                 vectors.append(cached[0].to_11d())
             else:

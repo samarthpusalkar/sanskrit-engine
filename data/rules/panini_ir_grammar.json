@@ -73,6 +73,38 @@
       "operation": {"type": "insert_affix", "text": "sup", "tag": "sup"}
     },
     {
+      "id": "4.1.2.gen.sg",
+      "name": "Sup Genitive Singular introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "genitive", "number": "singular"}}},
+      "operation": {"type": "insert_affix", "text": "ṅas", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.gen.du",
+      "name": "Sup Genitive Dual introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "genitive", "number": "dual"}}},
+      "operation": {"type": "insert_affix", "text": "os", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.gen.pl",
+      "name": "Sup Genitive Plural introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "genitive", "number": "plural"}}},
+      "operation": {"type": "insert_affix", "text": "ām", "tag": "sup"}
+    },
+    {
+      "id": "4.1.2.loc.sg",
+      "name": "Sup Locative Singular introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "locative", "number": "singular"}}},
+      "operation": {"type": "insert_affix", "text": "ṅi", "tag": "sup"}
+    },
+    {
       "id": "3.4.78.pres.3sg",
       "name": "Tin Present Third Singular introduction",
       "type": "vidhi",
@@ -89,12 +121,44 @@
       "operation": {"type": "insert_affix", "text": "jhi", "tag": "tin"}
     },
     {
+      "id": "3.4.78.pres.2sg",
+      "name": "Tin Present Second Singular introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "verb_stem", "feature_equals": {"pos": "verb", "tense": "present", "person": "second", "number": "singular"}}},
+      "operation": {"type": "insert_affix", "text": "sip", "tag": "tin"}
+    },
+    {
+      "id": "3.4.78.pres.1sg",
+      "name": "Tin Present First Singular introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "verb_stem", "feature_equals": {"pos": "verb", "tense": "present", "person": "first", "number": "singular"}}},
+      "operation": {"type": "insert_affix", "text": "mip", "tag": "tin"}
+    },
+    {
       "id": "1.3.9.tip",
       "name": "It-lopa: tip -> ti",
       "type": "vidhi",
       "priority": 90,
       "conditions": {"target": {"tag": "tin", "text": "tip"}},
       "operation": {"type": "replace_text", "text": "ti"}
+    },
+    {
+      "id": "1.3.9.sip",
+      "name": "It-lopa: sip -> si",
+      "type": "vidhi",
+      "priority": 90,
+      "conditions": {"target": {"tag": "tin", "text": "sip"}},
+      "operation": {"type": "replace_text", "text": "si"}
+    },
+    {
+      "id": "1.3.9.mip",
+      "name": "It-lopa: mip -> mi",
+      "type": "vidhi",
+      "priority": 90,
+      "conditions": {"target": {"tag": "tin", "text": "mip"}},
+      "operation": {"type": "replace_text", "text": "mi"}
     },
     {
       "id": "1.3.9.jhi",

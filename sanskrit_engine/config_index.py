@@ -27,6 +27,7 @@ DERIVATION_VOCAB = {
     "śānac": 8,   # Verb -> Present Middle Participle
     "tavya": 9,   # Verb -> Gerundive (should be done)
     "anīya": 10,  # Verb -> Gerundive (worthy of)
+    "nic": 11,    # Causative (to cause to do)
 }
 
 # --- Verbal Transformations ---
@@ -79,7 +80,7 @@ UPASARGA_VOCAB = {
     "anu": 5, "ava": 6, "nis": 7, "nir": 8, "dus": 9, 
     "dur": 10, "vi": 11, "ā": 12, "ni": 13, "adhi": 14, 
     "api": 15, "ati": 16, "su": 17, "ud": 18, "abhi": 19, 
-    "prati": 20, "pari": 21, "upa": 22
+    "prati": 20, "pari": 21, "upa": 22, "a": 23, "an": 24
 }
 
 def populate_vocabularies(dhatu_filepath: str = None):

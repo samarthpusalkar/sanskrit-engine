@@ -9,7 +9,7 @@ from .dataset import generate_jsonl
 from .enforcer import RuleEnforcer
 from .loader import load_rules
 from .generator import SanskritGenerator
-from .morphology import RuleBasedMorphology
+from .morphology import GenerativePaniniMorphology
 from .parser import SanskritParser
 from .preprocessor import hydrate_rule_file
 from .sutra import export_rule_stubs, load_sutras
@@ -71,7 +71,7 @@ def main() -> None:
             morph_rules = []
             for path in args.morphology_rules.split(","):
                 morph_rules.extend(load_rules(path))
-            morphology = RuleBasedMorphology(morph_rules)
+            morphology = GenerativePaniniMorphology(morph_rules)
         generate_jsonl(
             args.output_path,
             count=args.count,

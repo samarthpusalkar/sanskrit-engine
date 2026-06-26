@@ -176,10 +176,10 @@ class Engine:
             right = tokens[index + 1]
             if not token.text.endswith(op.old):
                 raise ValueError(f"Rule {rule.id} boundary suffix mismatch")
-            if not right.text.startswith(op.right_old):
+            if not right.text.startswith(op.right_old) and right.text != "":
                 raise ValueError(f"Rule {rule.id} boundary prefix mismatch")
             left_text = token.text[: -len(op.old)] + op.new if op.old else token.text + op.new
-            right_text = op.right_new + right.text[len(op.right_old) :]
+            right_text = op.right_new + (right.text[len(op.right_old) :] if right.text.startswith(op.right_old) else right.text)
             if op.remove_right:
                 token.text = left_text + op.joiner + right_text
                 del tokens[index + 1]
@@ -220,11 +220,12 @@ class Engine:
         if op.type == "insert_affix":
             if op.text is None:
                 raise ValueError(f"Rule {rule.id} insert_affix missing text")
-            new_token = Token(op.text, tags={op.tag or "affix"}, features=dict(token.features))
-            token.tags.discard("stem")
-            token.tags.discard("verb_stem")
-            token.tags.add("pada_stem")
-            tokens.insert(index + 1, new_token)
+            right_features = tokens[index + 1].features if index + 1 < len(tokens) else token.features
+            new_token = Token(op.text, tags={op.tag or "affix"}, features=dict(right_features))
+            if index + 1 < len(tokens) and tokens[index + 1].text == "":
+                tokens[index + 1] = new_token
+            else:
+                tokens.insert(index + 1, new_token)
             return
 
         raise ValueError(f"Unsupported operation: {op.type}")

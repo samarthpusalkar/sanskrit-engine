@@ -8,7 +8,7 @@ from typing import Any
 from .enforcer import RuleEnforcer
 from .lexicon import NounEntry, VerbEntry
 from .loader import load_rules
-from .morphology import RuleBasedMorphology
+from .morphology import GenerativePaniniMorphology
 
 
 @dataclass(frozen=True)
@@ -99,7 +99,7 @@ def _derive(case: dict[str, Any]) -> tuple[str, tuple[str, ...]]:
         result = RuleEnforcer(rules).enforce_text(" ".join(case["input"]))
         return result.output_text, tuple(step.rule_id for step in result.engine_result.trace)
 
-    morphology = RuleBasedMorphology(rules)
+    morphology = GenerativePaniniMorphology(rules)
     if kind == "noun":
         form = morphology.decline(
             NounEntry(str(case["lemma"]), str(case["gender"]), str(case.get("gloss", ""))),

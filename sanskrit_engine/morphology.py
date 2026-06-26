@@ -13,7 +13,7 @@ from .engine import Engine
 from .lexicon import NounEntry, VerbEntry
 from .rules import Rule
 from .token import Token
-from .legacy_old import TemplateMorphology, RuleBasedMorphology  # legacy quarantine export
+
 
 
 @dataclass(frozen=True)
@@ -30,9 +30,21 @@ class GenerativePaniniMorphology:
     Tokenization, declension, and conjugation are driven 100% dynamically
     by declarative JSON rule configs executed across the Engine VM.
     """
-    def __init__(self, rule_engine_or_rules: Engine | list[Rule]) -> None:
+    def __init__(self, rule_engine_or_rules: Optional[Union[Engine, list[Rule]]] = None) -> None:
+        if rule_engine_or_rules is None:
+            rule_engine_or_rules = []
         if isinstance(rule_engine_or_rules, list):
-            self.engine = Engine(rule_engine_or_rules)
+            rules = rule_engine_or_rules
+            if not any(getattr(r.operation, "type", "") == "insert_affix" for r in rules):
+                try:
+                    from pathlib import Path
+                    from .loader import load_rules
+                    ir_path = Path(__file__).parent.parent / "data" / "rules" / "panini_ir_grammar.json"
+                    if ir_path.exists():
+                        rules = load_rules(ir_path) + rules
+                except Exception:
+                    pass
+            self.engine = Engine(rules)
         else:
             self.engine = rule_engine_or_rules
 
@@ -104,3 +116,15 @@ class GenerativePaniniMorphology:
             features={"pos": "verb", "person": person, "number": number, "tense": tense, "voice": voice},
             rule_ids=tuple(step.rule_id for step in result.trace),
         )
+
+
+class TemplateMorphology(GenerativePaniniMorphology):
+    """Backward compatibility alias pointing to GenerativePaniniMorphology."""
+    def __init__(self, rule_engine_or_rules: Optional[Union[Engine, list[Rule]]] = None) -> None:
+        super().__init__(rule_engine_or_rules)
+
+
+class RuleBasedMorphology(GenerativePaniniMorphology):
+    """Backward compatibility alias pointing to GenerativePaniniMorphology."""
+    def __init__(self, rule_engine_or_rules: Optional[Union[Engine, list[Rule]]] = None) -> None:
+        super().__init__(rule_engine_or_rules)

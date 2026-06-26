@@ -10,7 +10,7 @@ from typing import List
 
 from sanskrit_engine import (
     RainbowTableGenerator,
-    RuleBasedMorphology,
+    GenerativePaniniMorphology,
     SandhiSplitterTokenizer,
     TensorCoordinate,
     TensorTokenizer,
@@ -21,7 +21,7 @@ from sanskrit_engine import (
 @pytest.fixture
 def gita_pipeline():
     rules = load_rules("data/rules/subanta.json") + load_rules("data/rules/tinanta.json")
-    morphology = RuleBasedMorphology(rules)
+    morphology = GenerativePaniniMorphology(rules)
     tokenizer = TensorTokenizer(morphology, default_dim=11)
     table = RainbowTableGenerator()
     table.populate_common_corpus(tokenizer)
