@@ -156,6 +156,11 @@ class Rule:
 
     def matches(self, tokens: list[Token], index: int, pratyahara: PratyaharaResolver) -> bool:
         target = tokens[index] if 0 <= index < len(tokens) else None
+        
+        # Sakṛd eva pravartate principle: a rule operates only once on a specific target token
+        if target is not None and self.id in target.consumed_rules:
+            return False
+            
         left = tokens[index - 1] if index > 0 else None
         right = tokens[index + 1] if index + 1 < len(tokens) else None
         return (

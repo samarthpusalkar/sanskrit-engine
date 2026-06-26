@@ -146,6 +146,8 @@ class Engine:
     def _apply(self, rule: Rule, tokens: list[Token], index: int) -> None:
         op = rule.operation
         token = tokens[index]
+        
+        token.consumed_rules.add(rule.id)
 
         if op.type == "noop":
             return
@@ -186,6 +188,7 @@ class Engine:
             else:
                 token.text = left_text
                 right.text = right_text
+                right.consumed_rules.add(rule.id)
             return
         if op.type == "merge_with_right":
             if op.text is None:

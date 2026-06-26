@@ -55,8 +55,24 @@ class RainbowTableGenerator:
         norm_vec = tuple(coord.to_11d().vector)
         return self.vec_to_word.get(norm_vec)
 
-    def populate_common_corpus(self, tokenizer: TensorTokenizer) -> int:
-        """Dynamically populates cache with verbal conjugations and nominal declensions from database."""
+    def populate_common_corpus(self, tokenizer: TensorTokenizer, use_disk_cache: bool = True) -> int:
+        """Dynamically populates cache with verbal conjugations and nominal declensions from database, backed by offline disk JSON cache."""
+        import json
+        from pathlib import Path
+        cache_file = Path(__file__).parent.parent / "data" / "cache" / "fst_rainbow_cache.json"
+        if use_disk_cache and cache_file.exists():
+            try:
+                with open(cache_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                count = 0
+                for word, vecs in data.items():
+                    for v in vecs:
+                        self.insert(word, TensorCoordinate(v))
+                        count += 1
+                return count
+            except Exception:
+                pass
+
         count = 0
         for r_str, r_id in list(ROOT_VOCAB.items())[:200]:
             if r_str in DHATU_META:
@@ -100,6 +116,15 @@ class RainbowTableGenerator:
                                 count += 1
                             except Exception:
                                 pass
+
+        if use_disk_cache:
+            try:
+                cache_file.parent.mkdir(parents=True, exist_ok=True)
+                dump_data = {w: [list(c.to_11d().vector) for c in coords] for w, coords in self.word_to_vec.items()}
+                with open(cache_file, "w", encoding="utf-8") as f:
+                    json.dump(dump_data, f, ensure_ascii=False)
+            except Exception:
+                pass
         return count
 
 
