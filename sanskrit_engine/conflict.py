@@ -40,7 +40,7 @@ class PaninianConflictResolver(ConflictResolver):
     1. Apavāda over Utsarga (Specific exception overrides general).
     2. Nitya over Anitya (Indestructible applicability).
     3. Antaraṅga over Bahiraṅga (Internal over external scope).
-    4. Para over Pūrva (Later rule beats earlier rule in Sapāda: Vipratiṣedhe paraṃ kāryam).
+    4. Rajpopat Right-Operand Precedence (1.4.2 Vipratiṣedhe paraṃ kāryam: Right-side morpheme operations beat left-side operations).
     """
 
     def resolve(self, matches: list[Match]) -> Match:
@@ -72,7 +72,11 @@ class PaninianConflictResolver(ConflictResolver):
             1 if getattr(rule.operation, "remove_right", False) or rule.priority > 105 else 0
         )
 
-        # Tier 3: Antaraṅga (Internal stem/affix scope beats external Sandhi scope)
-        scope_rank = 2 if rule.scope == "target" else (1 if rule.scope == "left_operand" else 0)
+        # Tier 3: Antaraṅga & Rajpopat Right-Operand Precedence (1.4.2)
+        scope_rank = (
+            3
+            if rule.scope == "right_operand"
+            else (2 if rule.scope == "target" else (1 if rule.scope == "left_operand" else 0))
+        )
 
         return (is_apavada, is_nitya, scope_rank, rule.priority, rule.source_order)

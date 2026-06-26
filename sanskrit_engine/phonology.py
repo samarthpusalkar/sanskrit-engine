@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-DEVANAGARI_PHONEMES = (
+SURFACE_PHONEMES = (
     "ai",
     "au",
     "kh",
@@ -53,6 +53,8 @@ DEVANAGARI_PHONEMES = (
     "h",
 )
 
+DEVANAGARI_PHONEMES = SURFACE_PHONEMES
+
 VOWELS = frozenset({"a", "ā", "i", "ī", "u", "ū", "ṛ", "ṝ", "ḷ", "e", "o", "ai", "au"})
 
 
@@ -77,7 +79,7 @@ def tokenize_phonemes(text: str) -> list[PhonemeToken]:
             index += 1
             continue
         match = None
-        for phoneme in DEVANAGARI_PHONEMES:
+        for phoneme in SURFACE_PHONEMES:
             if text.startswith(phoneme, index):
                 match = phoneme
                 break

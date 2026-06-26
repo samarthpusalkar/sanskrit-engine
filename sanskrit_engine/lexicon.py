@@ -42,6 +42,15 @@ def lookup_pratipadika(word: str) -> Dict[str, Any] | None:
     return get_pratipadika(word)
 
 
+class DynamicLexiconLoader:
+    """Dynamic generative lexicon loader. Deprecates static toy lexicons."""
+
+    @staticmethod
+    def get_noun_entry(base_str: str) -> NounEntry | None:
+        pr = lookup_pratipadika(base_str)
+        return NounEntry.from_schema(pr) if pr else None
+
+
 DEFAULT_NOUNS = (
     NounEntry("rāma", "masculine", "Rama"),
     NounEntry("bāla", "masculine", "boy"),

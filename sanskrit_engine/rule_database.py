@@ -120,3 +120,11 @@ class RuleDatabase:
             if pratyahara in conds_str:
                 res.append(r)
         return res
+
+    def get_adhikara_tree(self) -> Dict[str, List[PaniniRule]]:
+        """Hierarchical Adhikāra header domain tree index."""
+        tree: Dict[str, List[PaniniRule]] = {}
+        for r in self.rules:
+            for d in r.domain:
+                tree.setdefault(d, []).append(r)
+        return tree

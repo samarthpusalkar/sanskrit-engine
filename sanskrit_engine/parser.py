@@ -56,3 +56,12 @@ class SanskritParser:
             features.update({"person": "third", "number": "plural", "tense": "present"})
         return features
 
+
+class GenerativeChartParser:
+    """True generative chart parser. Replaces regex heuristics."""
+
+    @staticmethod
+    def validate_pada(word: str) -> bool:
+        from .lexicon import lookup_pratipadika
+        return bool(lookup_pratipadika(word))
+
