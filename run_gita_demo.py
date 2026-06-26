@@ -53,7 +53,7 @@ def run_demo():
         surf = tokenizer.decode([v])
         print(f"    - {surf:<15} -> {v.vector}")
 
-    vector_filepath = "gita_shloka_vectors.json"
+    vector_filepath = "tests/results/gita_shloka_vectors.json"
     with open(vector_filepath, "w", encoding="utf-8") as f:
         json.dump({
             "shloka": shloka,
@@ -89,7 +89,7 @@ def run_demo():
     for w, v in zip(ext_text.split(), ext_vectors):
         print(f"    - {w:<15} -> {v.vector[:2]}... (ID: {v.vector[0]})")
         
-    ext_filepath = "external_words_vectors.json"
+    ext_filepath = "tests/results/external_words_vectors.json"
     with open(ext_filepath, "w", encoding="utf-8") as f:
         json.dump([v.vector for v in ext_vectors], f, indent=2)
     print(f"[+] Saved external vectors to: {os.path.abspath(ext_filepath)}")

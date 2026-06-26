@@ -6,6 +6,7 @@ __pycache__/
 htmlcov/
 data/synthetic*.jsonl
 data/ashtadhyayi-data/
+tests/results/
 .venv/
 venv/
 env/
