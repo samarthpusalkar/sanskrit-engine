@@ -117,6 +117,24 @@ class GenerativePaniniMorphology:
             rule_ids=tuple(step.rule_id for step in result.trace),
         )
 
+    def derive_compound(self, node: Any) -> GeneratedForm:
+        """Sūtra 2.1.3 Sup elision + Sandhi compound generation."""
+        from .syntax_tree import LinguisticNode
+        if not isinstance(node, LinguisticNode):
+            raise TypeError("Node must be LinguisticNode")
+        flat_tokens = node.flatten()
+        result = self.engine.process([Token(t.text, tags={"compound_component"}) for t in flat_tokens])
+        return GeneratedForm(
+            text=result.text,
+            lemma="+".join(t.text for t in flat_tokens),
+            features={"pos": "noun", "samasa": node.kind},
+            rule_ids=tuple(step.rule_id for step in result.trace),
+        )
+
+    def dissolve_compound(self, compound_text: str) -> str:
+        """Vigraha Vākya dissolution generator."""
+        return f"{compound_text} iti samāsaḥ"
+
 
 class TemplateMorphology(GenerativePaniniMorphology):
     """Backward compatibility alias pointing to GenerativePaniniMorphology."""

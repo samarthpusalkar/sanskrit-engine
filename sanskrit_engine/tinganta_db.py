@@ -93,3 +93,15 @@ class TingantaDB:
     @property
     def krdanta_count(self) -> int:
         return len(self._krdanta_cache)
+
+    def get_dhatu(self, root_str: str) -> Optional[dict]:
+        """Fetch raw Dhātu object with inherent Pāṇinian anubandha tags."""
+        for meta in self._verb_cache.values():
+            if meta["root_iast"] == root_str:
+                return {
+                    "dhatu": root_str,
+                    "concept_id": meta["concept_id"],
+                    "pada": meta["pada"],
+                    "tags": {"udatta", "parasmaipada" if meta["pada"] == 1 else "atmanepada"},
+                }
+        return None

@@ -57,6 +57,14 @@
       "operation": {"type": "insert_affix", "text": "ṭā", "tag": "sup"}
     },
     {
+      "id": "4.1.2.dat.sg",
+      "name": "Sup Dative Singular introduction",
+      "type": "vidhi",
+      "priority": 100,
+      "conditions": {"target": {"tag": "stem", "feature_equals": {"pos": "noun", "case": "dative", "number": "singular"}}},
+      "operation": {"type": "insert_affix", "text": "ṅe", "tag": "sup"}
+    },
+    {
       "id": "4.1.2.inst.pl",
       "name": "Sup Instrumental Plural introduction",
       "type": "vidhi",

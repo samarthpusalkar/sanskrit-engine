@@ -53,8 +53,10 @@ class OllamaCloudClient:
                 }}
             }},
             "operation": {{
-                "type": "lambda",
-                "executable": "lambda token, env: ...python string manipulation logic..."
+                "type": "symbolic_dsl",
+                "op_kind": "substitute",
+                "target_scope": "target",
+                "executable": "lambda token, env: token" // Fallback callable
             }}
         }}
         Make sure the `conditions` block extracts the "when X follows" or "when X is the target" logic. Do not leave it empty.

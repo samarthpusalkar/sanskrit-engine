@@ -19,6 +19,9 @@ OperationType = Literal[
     "remove_tag",
     "set_feature",
     "insert_affix",
+    "substitute_phoneme",
+    "insert_augment",
+    "elide",
     "noop",
 ]
 
@@ -107,6 +110,8 @@ class Operation:
     feature: str | None = None
     value: Any = None
     remove_right: bool = False
+    position: str | None = None
+    augment: str | None = None
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Operation":
@@ -122,6 +127,8 @@ class Operation:
             feature=data.get("feature"),
             value=data.get("value"),
             remove_right=bool(data.get("remove_right", False)),
+            position=data.get("position"),
+            augment=data.get("augment"),
         )
 
 
@@ -176,3 +183,42 @@ class Rule:
             for condition in (self.left, self.target, self.right)
             if condition is not None
         )
+
+
+@dataclass(frozen=True)
+class SymbolicContext:
+    """Declarative JSON predicate over phoneme features, pratyāhāras, and adhikāra domains."""
+    in_pratyahara: str | None = None
+    sthana: str | None = None
+    prayatna: str | None = None
+    accent: str | None = None
+    it_marker: bool | None = None
+    adhikara: str | None = None
+    morph_class: str | None = None
+
+
+@dataclass(frozen=True)
+class SymbolicOperation:
+    """Declarative invertible operation mapping target context to replacement."""
+    op_kind: Literal["substitute", "augment", "elide", "infix"]
+    target_scope: Literal["left", "right", "target"]
+    map_pratyahara: dict[str, str] = field(default_factory=dict)
+    literal_phonemes: str | None = None
+    it_flags: frozenset[str] = field(default_factory=frozenset)
+
+
+@dataclass(frozen=True)
+class SymbolicRule:
+    """Formal declarative Vyākaraṇa rewrite rule."""
+    sutra_id: str
+    name: str
+    rule_type: RuleType
+    domain: Literal["sapada", "tripadi"]
+    priority: int
+    left_context: SymbolicContext | None
+    right_context: SymbolicContext | None
+    target_context: SymbolicContext | None
+    operation: SymbolicOperation
+
+    def is_invertible(self) -> bool:
+        return self.operation.op_kind in ("substitute", "augment", "infix")

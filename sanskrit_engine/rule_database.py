@@ -107,3 +107,16 @@ class RuleDatabase:
     def get_applicable_rules(self, token: Dict[str, Any], env: Dict[str, Any]) -> List[PaniniRule]:
         """Returns all rules whose conditions evaluate to True, ordered by priority."""
         return [r for r in self.rules if r.validate_conditions(token, env)]
+
+    def get_rules_by_domain(self, domain: str) -> List[PaniniRule]:
+        """Returns all rules indexed under a specific Adhikāra governing domain."""
+        return [r for r in self.rules if domain in r.domain or r.category == domain]
+
+    def get_rules_by_pratyahara(self, pratyahara: str) -> List[PaniniRule]:
+        """Returns all rules triggered by a specific Śiva Sūtra pratyāhāra set."""
+        res = []
+        for r in self.rules:
+            conds_str = json.dumps(r.conditions)
+            if pratyahara in conds_str:
+                res.append(r)
+        return res

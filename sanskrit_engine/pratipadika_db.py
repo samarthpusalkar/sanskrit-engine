@@ -95,11 +95,10 @@ class PratipadikaDatabase:
             
             row = cur.fetchone()
             if row:
-                res = json.loads(row[0])
+                res = self._enrich(json.loads(row[0]))
                 self._cache[query_str] = res
                 return res
-                
-            # If not found directly, try converting query to SLP1
+
             if not query_str.isascii():
                 slp1_query = sanscript.transliterate(query_str, sanscript.DEVANAGARI, sanscript.SLP1)
                 if slp1_query != query_str:
@@ -108,13 +107,22 @@ class PratipadikaDatabase:
                     return res
             self._cache[query_str] = None
             return None
-            
-        # Fallback to JSON
+
         fallback = self._load_fallback()
         if query_str in fallback:
-            return fallback[query_str]
+            return self._enrich(dict(fallback[query_str]))
         slp1_q = sanscript.transliterate(query_str, sanscript.DEVANAGARI, sanscript.SLP1)
-        return fallback.get(slp1_q)
+        res = fallback.get(slp1_q)
+        return self._enrich(dict(res)) if res else None
+
+    def _enrich(self, entry: Dict[str, Any] | None) -> Dict[str, Any] | None:
+        if entry is None:
+            return None
+        meta = entry.setdefault("paninian_meta", {})
+        tags = set(meta.get("inherent_tags", []))
+        tags.update(["pratipadika", "subanta_eligible"])
+        meta["inherent_tags"] = sorted(tags)
+        return entry
 
     def get_by_gana(self, gana_name: str) -> List[Dict[str, Any]]:
         """

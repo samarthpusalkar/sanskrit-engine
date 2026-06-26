@@ -230,5 +230,31 @@ class Engine:
             else:
                 tokens.insert(index + 1, new_token)
             return
+        if op.type == "substitute_phoneme":
+            if op.text is None:
+                raise ValueError(f"Rule {rule.id} substitute_phoneme missing text")
+            token.text = op.text
+            return
+        if op.type == "insert_augment":
+            aug_text = op.augment or op.text
+            if aug_text is None:
+                raise ValueError(f"Rule {rule.id} insert_augment missing augment text")
+            if op.position in ("mit", "after_vowel"):
+                from .phonology import is_vowel
+                for i in range(len(token.text) - 1, -1, -1):
+                    if is_vowel(token.text[i]):
+                        token.text = token.text[: i + 1] + aug_text + token.text[i + 1 :]
+                        return
+                token.text = token.text + aug_text
+            elif op.position in ("tit", "start"):
+                token.text = aug_text + token.text
+            else:
+                token.text = token.text + aug_text
+            return
+        if op.type == "elide":
+            token.text = ""
+            if op.remove_right:
+                del tokens[index]
+            return
 
         raise ValueError(f"Unsupported operation: {op.type}")

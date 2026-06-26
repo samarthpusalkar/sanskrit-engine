@@ -48,6 +48,12 @@ def export_rule_stubs(sutras: list[SutraRecord]) -> dict[str, list[dict[str, Any
                 "priority": sutra.source_order,
                 "conditions": {},
                 "operation": {"type": "noop"},
+                "symbolic_rule_spec": {
+                    "left_context": None,
+                    "right_context": None,
+                    "target_context": None,
+                    "operation": {"op_kind": "substitute", "target_scope": "target"},
+                },
                 "metadata": {
                     "padaccheda": sutra.padaccheda,
                     "anuvritti": list(sutra.anuvritti),

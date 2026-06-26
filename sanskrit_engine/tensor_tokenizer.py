@@ -458,8 +458,32 @@ class TensorTokenizer:
                 
             if tensor is not None:
                 tensors.append(TensorCoordinate(tensor))
-                
+
         return tensors
+
+    def encode_compound(self, node: Any) -> TensorCoordinate:
+        """Encodes recursive compound AST LinguisticNode into hierarchical tree-tensor coordinate."""
+        from .syntax_tree import LinguisticNode
+        if not isinstance(node, LinguisticNode):
+            raise TypeError("Node must be LinguisticNode")
+        tokens = node.flatten()
+        sub_tensors = self.encode([t.text for t in tokens])
+        if not sub_tensors:
+            raise ValueError("Failed to encode compound elements")
+        base_vec = list(sub_tensors[0].vector)
+        samasa_map = {
+            "avyayibhava": 1,
+            "tatpurusha": 2,
+            "karmadharaya": 3,
+            "dvigu": 4,
+            "bahuvrihi": 5,
+            "dvandva": 6,
+            "simple": 0,
+        }
+        role_id = samasa_map.get(node.kind, 0)
+        if len(base_vec) == 11:
+            base_vec[4] = role_id
+        return TensorCoordinate(base_vec)
 
     def decode(self, coordinates: List[TensorCoordinate]) -> str:
         """
